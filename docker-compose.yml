@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: tim-postgres
+    environment:
+      POSTGRES_DB: tim
+      POSTGRES_USER: tim
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "9876:5432"
+    volumes:
+      - tim-pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+
+  tim:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: tim:latest
+    container_name: tim
+    environment:
+      KEY_PASS: changeme
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tim
+      SPRING_DATASOURCE_USERNAME: tim
+      SPRING_DATASOURCE_PASSWORD: 123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_LIQUIBASE_ENABLED: "false"
+
+      # JWT keystore via Docker-friendly envs (Spring maps underscores -> dots)
+      JWT_SIGNATURE_KEY_STORE: file:/opt/tim/jwtkeystore.jks
+      JWT_SIGNATURE_KEY_STORE_TYPE: JKS
+      JWT_SIGNATURE_KEY_STORE_PASSWORD: ${KEY_PASS}
+      JWT_SIGNATURE_KEY_ALIAS: jwtsign
+    depends_on:
+      - postgres
+    ports:
+      - "8085:8085"
+
+volumes:
+  tim-pgdata:

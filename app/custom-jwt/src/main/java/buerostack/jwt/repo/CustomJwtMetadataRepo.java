@@ -1,0 +1,2 @@
+package buerostack.jwt.repo; import buerostack.jwt.entity.CustomJwtMetadata; import org.springframework.data.jpa.repository.JpaRepository; import java.util.UUID;
+public interface CustomJwtMetadataRepo extends JpaRepository<CustomJwtMetadata, UUID> {}

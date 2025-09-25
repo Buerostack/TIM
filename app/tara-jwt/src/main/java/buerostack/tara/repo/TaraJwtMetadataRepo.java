@@ -1,0 +1,2 @@
+package buerostack.tara.repo; import buerostack.tara.entity.TaraJwtMetadata; import org.springframework.data.jpa.repository.JpaRepository; import java.util.UUID;
+public interface TaraJwtMetadataRepo extends JpaRepository<TaraJwtMetadata, UUID> {}
