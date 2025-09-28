@@ -15,6 +15,10 @@ public class JwtSignerService {
     Instant now=Instant.now(); JWTClaimsSet.Builder cb=new JWTClaimsSet.Builder().issuer(iss).issueTime(Date.from(now)).expirationTime(Date.from(now.plusSeconds(ttl))).jwtID(UUID.randomUUID().toString()).audience(aud);
     identity.forEach(cb::claim); SignedJWT jwt=new SignedJWT(header, cb.build()); jwt.sign(new RSASSASigner(rsaJwk)); return jwt.serialize();
   }
+  public String sign(Map<String,Object> identity,String iss,List<String> audiences,long ttl) throws JOSEException {
+    Instant now=Instant.now(); JWTClaimsSet.Builder cb=new JWTClaimsSet.Builder().issuer(iss).issueTime(Date.from(now)).expirationTime(Date.from(now.plusSeconds(ttl))).jwtID(UUID.randomUUID().toString());
+    cb.audience(audiences); identity.forEach(cb::claim); SignedJWT jwt=new SignedJWT(header, cb.build()); jwt.sign(new RSASSASigner(rsaJwk)); return jwt.serialize();
+  }
   public boolean verify(String token){ try{ SignedJWT jwt=SignedJWT.parse(token); return jwt.verify(new RSASSAVerifier(rsaJwk.toPublicJWK().toRSAKey())); }catch(Exception e){ return false; } }
   public String publicJwkSet(){ return new JWKSet(rsaJwk.toPublicJWK()).toJSONObject().toString(); }
 }
