@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TIM API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui.css" />
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+
+    .swagger-ui .topbar {
+      background-color: #1b1b1b;
+    }
+
+    .swagger-ui .topbar .download-url-wrapper {
+      display: none;
+    }
+
+    .custom-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 0;
+    }
+
+    .custom-header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      font-weight: 300;
+    }
+
+    .custom-header p {
+      margin: 10px 0 0 0;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .server-info {
+      background: #f8f9fa;
+      padding: 15px;
+      margin: 0;
+      border-bottom: 1px solid #e9ecef;
+      text-align: center;
+    }
+
+    .server-info .server-url {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      background: #e9ecef;
+      padding: 5px 10px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .quick-links {
+      background: #ffffff;
+      padding: 20px;
+      margin: 0;
+      border-bottom: 1px solid #e9ecef;
+      text-align: center;
+    }
+
+    .quick-links h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+    }
+
+    .quick-links .links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .quick-links a {
+      background: #007bff;
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 0.9em;
+      transition: background-color 0.2s;
+    }
+
+    .quick-links a:hover {
+      background: #0056b3;
+    }
+
+    .quick-links a.oauth { background: #28a745; }
+    .quick-links a.oauth:hover { background: #1e7e34; }
+    .quick-links a.jwt { background: #fd7e14; }
+    .quick-links a.jwt:hover { background: #e55a00; }
+    .quick-links a.keys { background: #6c757d; }
+    .quick-links a.keys:hover { background: #545b62; }
+
+    #swagger-ui {
+      max-width: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="custom-header">
+    <h1>🔐 TIM API Documentation</h1>
+    <p>Token Identity Manager - OAuth2/OIDC Authentication & Custom JWT Management</p>
+  </div>
+
+  <div class="server-info">
+    <strong>Server:</strong>
+    <span class="server-url" id="server-url">http://localhost:8085</span>
+    <span style="margin-left: 20px;">
+      <strong>Status:</strong>
+      <span id="server-status" style="color: #dc3545;">Checking...</span>
+    </span>
+  </div>
+
+  <div class="quick-links">
+    <h3>Quick API Tests</h3>
+    <div class="links">
+      <a href="http://localhost:8085/auth/health" target="_blank" class="oauth">🔍 OAuth2 Health</a>
+      <a href="http://localhost:8085/auth/providers" target="_blank" class="oauth">📋 List Providers</a>
+      <a href="http://localhost:8085/jwt/keys/public" target="_blank" class="keys">🔑 Public Keys</a>
+      <a href="#/Custom JWT Management/post_jwt_custom_generate" class="jwt">⚡ Generate JWT</a>
+      <a href="#/OAuth2/OIDC Authentication/get_auth_login__providerId_" class="oauth">🚀 OAuth2 Login</a>
+    </div>
+  </div>
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-standalone-preset.js"></script>
+  <script>
+    // Check server status
+    function checkServerStatus() {
+      const statusElement = document.getElementById('server-status');
+      const serverUrl = document.getElementById('server-url').textContent;
+
+      fetch(`${serverUrl}/auth/health`)
+        .then(response => {
+          if (response.ok) {
+            statusElement.textContent = '✅ Online';
+            statusElement.style.color = '#28a745';
+          } else {
+            statusElement.textContent = '❌ Error';
+            statusElement.style.color = '#dc3545';
+          }
+        })
+        .catch(error => {
+          statusElement.textContent = '❌ Offline';
+          statusElement.style.color = '#dc3545';
+        });
+    }
+
+    // Initialize Swagger UI
+    window.onload = function() {
+      checkServerStatus();
+
+      const ui = SwaggerUIBundle({
+        url: './openapi.yaml',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        tryItOutEnabled: true,
+        requestInterceptor: (request) => {
+          // Auto-add current server URL
+          const serverUrl = document.getElementById('server-url').textContent;
+          if (request.url.startsWith('/')) {
+            request.url = serverUrl + request.url;
+          }
+          return request;
+        },
+        onComplete: () => {
+          // Custom styling after load
+          setTimeout(() => {
+            const topbar = document.querySelector('.swagger-ui .topbar');
+            if (topbar) {
+              const logo = topbar.querySelector('.topbar-wrapper a');
+              if (logo) {
+                logo.innerHTML = '<span style="font-size: 1.5em;">🔐 TIM API</span>';
+                logo.style.textDecoration = 'none';
+              }
+            }
+          }, 100);
+        },
+        defaultModelsExpandDepth: 2,
+        defaultModelExpandDepth: 2,
+        docExpansion: 'list',
+        operationsSorter: 'alpha',
+        tagsSorter: 'alpha'
+      });
+
+      // Refresh server status every 30 seconds
+      setInterval(checkServerStatus, 30000);
+    };
+  </script>
+</body>
+</html>
