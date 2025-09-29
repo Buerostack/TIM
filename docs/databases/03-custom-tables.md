@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `custom` schema contains tables specifically designed for TIM's custom JWT functionality. These tables handle token generation, tracking, revocation, and optional allowlist management for API authentication and service-to-service communication.
+The `custom` schema contains tables specifically designed for TIM's custom JWT functionality. These tables handle token generation, tracking, and revocation for API authentication and service-to-service communication.
 
 ## Table Structure
 
@@ -183,56 +183,6 @@ WHERE issued_at BETWEEN '2024-01-01 10:00:00' AND '2024-01-01 11:00:00'
   AND jwt_uuid NOT IN (SELECT jwt_uuid FROM custom.denylist);
 ```
 
-### `custom.allowlist`
-
-**Purpose**: Optional explicit allowlist for JWT tokens requiring special approval.
-
-#### Schema Definition
-```sql
-CREATE TABLE custom.allowlist (
-    jwt_hash   TEXT PRIMARY KEY,                        -- Hash/identifier of allowed token
-    expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL     -- Expiration for cleanup
-);
-
--- Indexes
--- allowlist_pkey PRIMARY KEY, btree (jwt_hash)
--- idx_custom_allowlist_exp btree (expires_at)  -- Cleanup optimization
-```
-
-#### Field Details
-
-**`jwt_hash` (TEXT, Primary Key)**
-- **Content**: Hash or unique identifier of the allowed token
-- **Purpose**: Identify specific tokens for allowlist validation
-- **Implementation**: Can be token hash, signature, or other identifier
-- **Use Case**: Special permission tokens, administrative overrides
-
-**`expires_at` (TIMESTAMP, NOT NULL)**
-- **Purpose**: Automatic cleanup of expired allowlist entries
-- **Coordination**: Should align with token expiration
-- **Maintenance**: Prevents allowlist from growing indefinitely
-
-#### Usage Patterns
-
-**Current Status**: The allowlist table exists but is not actively used in the current implementation. It's prepared for future functionality:
-
-**Potential Use Cases:**
-1. **Administrative Override Tokens**: Special tokens that bypass normal validation
-2. **Emergency Access**: Temporary elevated permissions during incidents
-3. **Service Tokens**: Long-lived tokens for critical services
-4. **API Key Management**: Alternative token validation mechanism
-
-**Implementation Example:**
-```java
-// Hypothetical allowlist validation
-public boolean isAllowlisted(String token) {
-    String tokenHash = calculateHash(token);
-    return allowlistRepo.findById(tokenHash)
-        .map(entry -> entry.getExpiresAt().isAfter(Instant.now()))
-        .orElse(false);
-}
-```
-
 ## Table Relationships
 
 ### Primary Relationships
@@ -289,14 +239,12 @@ WHERE NOT EXISTS (
 -- Fast UUID lookups for validation
 jwt_metadata_pkey (jwt_uuid)
 denylist_pkey (jwt_uuid)
-allowlist_pkey (jwt_hash)
 ```
 
 **Cleanup Optimization Indexes:**
 ```sql
 -- Efficient expiration-based cleanup
 idx_custom_denylist_exp (expires_at)
-idx_custom_allowlist_exp (expires_at)
 ```
 
 ### Missing Indexes (Performance Opportunities)
@@ -425,14 +373,9 @@ WHERE expires_at < NOW();
 DELETE FROM custom.jwt_metadata
 WHERE expires_at < NOW() - INTERVAL '30 days';
 
--- Clean unused allowlist entries
-DELETE FROM custom.allowlist
-WHERE expires_at < NOW();
-
 -- Update statistics
 ANALYZE custom.jwt_metadata;
 ANALYZE custom.denylist;
-ANALYZE custom.allowlist;
 ```
 
 **Weekly Maintenance:**
@@ -440,7 +383,6 @@ ANALYZE custom.allowlist;
 -- Vacuum tables for space reclamation
 VACUUM ANALYZE custom.jwt_metadata;
 VACUUM ANALYZE custom.denylist;
-VACUUM ANALYZE custom.allowlist;
 
 -- Check table sizes
 SELECT

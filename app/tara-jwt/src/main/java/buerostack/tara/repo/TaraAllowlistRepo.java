@@ -1,2 +1,0 @@
-package buerostack.tara.repo; import buerostack.tara.entity.TaraAllowlist; import org.springframework.data.jpa.repository.JpaRepository;
-public interface TaraAllowlistRepo extends JpaRepository<TaraAllowlist, String> {}

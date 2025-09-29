@@ -8,12 +8,6 @@ CREATE TABLE IF NOT EXISTS custom.denylist (
 );
 CREATE INDEX IF NOT EXISTS idx_custom_denylist_exp ON custom.denylist (expires_at);
 
-CREATE TABLE IF NOT EXISTS custom.allowlist (
-  jwt_hash text PRIMARY KEY,
-  expires_at timestamp NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_custom_allowlist_exp ON custom.allowlist (expires_at);
-
 CREATE TABLE IF NOT EXISTS custom.jwt_metadata (
   jwt_uuid uuid PRIMARY KEY,
   claim_keys text NOT NULL,
@@ -27,12 +21,6 @@ CREATE TABLE IF NOT EXISTS tara.denylist (
   expires_at timestamp NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_tara_denylist_exp ON tara.denylist (expires_at);
-
-CREATE TABLE IF NOT EXISTS tara.allowlist (
-  jwt_hash text PRIMARY KEY,
-  expires_at timestamp NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_tara_allowlist_exp ON tara.allowlist (expires_at);
 
 CREATE TABLE IF NOT EXISTS tara.jwt_metadata (
   jwt_uuid uuid PRIMARY KEY,

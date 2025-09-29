@@ -1,2 +1,0 @@
-package buerostack.jwt.repo; import buerostack.jwt.entity.CustomAllowlist; import org.springframework.data.jpa.repository.JpaRepository;
-public interface CustomAllowlistRepo extends JpaRepository<CustomAllowlist, String> {}

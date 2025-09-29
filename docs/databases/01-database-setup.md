@@ -75,12 +75,10 @@ CREATE SCHEMA IF NOT EXISTS tara;
 ```sql
 -- Custom JWT tables
 CREATE TABLE IF NOT EXISTS custom.denylist (...);
-CREATE TABLE IF NOT EXISTS custom.allowlist (...);
 CREATE TABLE IF NOT EXISTS custom.jwt_metadata (...);
 
 -- TARA OAuth tables
 CREATE TABLE IF NOT EXISTS tara.denylist (...);
-CREATE TABLE IF NOT EXISTS tara.allowlist (...);
 CREATE TABLE IF NOT EXISTS tara.jwt_metadata (...);
 CREATE TABLE IF NOT EXISTS tara.oauth_state (...);
 ```
@@ -89,9 +87,7 @@ CREATE TABLE IF NOT EXISTS tara.oauth_state (...);
 ```sql
 -- Performance indexes
 CREATE INDEX IF NOT EXISTS idx_custom_denylist_exp ON custom.denylist (expires_at);
-CREATE INDEX IF NOT EXISTS idx_custom_allowlist_exp ON custom.allowlist (expires_at);
 CREATE INDEX IF NOT EXISTS idx_tara_denylist_exp ON tara.denylist (expires_at);
-CREATE INDEX IF NOT EXISTS idx_tara_allowlist_exp ON tara.allowlist (expires_at);
 ```
 
 ### First-Time Setup Flow
@@ -158,7 +154,6 @@ Both schemas have identical table structures but serve different purposes:
 -- Both schemas have:
 jwt_metadata (jwt_uuid, claim_keys, issued_at, expires_at)
 denylist (jwt_uuid, denylisted_at, expires_at)
-allowlist (jwt_hash, expires_at)
 ```
 
 **Rationale for Duplication:**
