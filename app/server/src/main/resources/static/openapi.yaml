@@ -694,9 +694,22 @@ paths:
       tags:
         - Custom JWT Management
       summary: List user's JWT tokens
-      description: List all JWT tokens associated with the authenticated user
+      description: |
+        List all JWT tokens associated with the authenticated user.
+
+        **Authentication Required**: This endpoint requires a valid JWT token in the Authorization header.
+        The header must be in the format: `Authorization: Bearer <your-jwt-token>`
       security:
         - BearerAuth: []
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: JWT token for authentication in Bearer format
+          schema:
+            type: string
+            example: "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+          example: "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwicm9sZSI6ImFkbWluIn0.signature"
       requestBody:
         required: false
         content:
@@ -756,12 +769,62 @@ paths:
                       totalPages:
                         type: integer
                         example: 3
+              examples:
+                successful_response:
+                  summary: Successful token listing
+                  value:
+                    tokens:
+                      - jti: "abc123def456"
+                        name: "USER_TOKEN"
+                        subject: "user123"
+                        issuedAt: "2025-09-29T20:05:01Z"
+                        expiresAt: "2025-09-29T21:05:01Z"
+                        revoked: false
+                        revokedAt: null
+                        audience: ["api.example.com"]
+                      - jti: "xyz789uvw012"
+                        name: "API_TOKEN"
+                        subject: "user123"
+                        issuedAt: "2025-09-29T19:30:15Z"
+                        expiresAt: "2025-09-29T22:30:15Z"
+                        revoked: false
+                        revokedAt: null
+                        audience: ["admin.example.com"]
+                    pagination:
+                      page: 0
+                      size: 20
+                      total: 2
+                      totalPages: 1
         '401':
           description: Invalid or missing authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: ["invalid_authorization", "invalid_token", "missing_subject", "authentication_failed"]
+                    example: "invalid_authorization"
+                  message:
+                    type: string
+                    example: "Authorization header must be in format 'Bearer <token>'"
+              examples:
+                missing_bearer:
+                  summary: Missing Bearer prefix
+                  value:
+                    error: "invalid_authorization"
+                    message: "Authorization header must be in format 'Bearer <token>'"
+                invalid_token:
+                  summary: Invalid or expired token
+                  value:
+                    error: "invalid_token"
+                    message: "Token is invalid, expired, or revoked"
+                missing_subject:
+                  summary: Token missing subject
+                  value:
+                    error: "missing_subject"
+                    message: "Token does not contain a valid subject claim"
 
   # Public Key Endpoints
   /jwt/keys/public:
@@ -810,7 +873,19 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token for authentication
+      description: |
+        JWT Bearer token for authentication.
+
+        **How to get a token:**
+        1. Use the `/jwt/custom/generate` endpoint to create a JWT token
+        2. Copy the `token` value from the response
+        3. Click the "Authorize" button above and enter: `Bearer <your-token>`
+        4. Or manually add to Authorization header: `Authorization: Bearer <your-token>`
+
+        **Example token format:**
+        ```
+        Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIn0.signature
+        ```
 
   schemas:
     ProviderInfo:

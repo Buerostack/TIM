@@ -129,13 +129,21 @@
   </div>
 
   <div class="quick-links">
-    <h3>Quick API Tests</h3>
+    <h3>Quick API Tests & Authentication Guide</h3>
     <div class="links">
       <a href="http://localhost:8085/auth/health" target="_blank" class="oauth">🔍 OAuth2 Health</a>
       <a href="http://localhost:8085/auth/providers" target="_blank" class="oauth">📋 List Providers</a>
       <a href="http://localhost:8085/jwt/keys/public" target="_blank" class="keys">🔑 Public Keys</a>
       <a href="#/Custom JWT Management/post_jwt_custom_generate" class="jwt">⚡ Generate JWT</a>
       <a href="#/OAuth2/OIDC Authentication/get_auth_login__providerId_" class="oauth">🚀 OAuth2 Login</a>
+    </div>
+    <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 0.9em;">
+      <strong>🔐 Authentication Workflow:</strong><br>
+      1. Generate a JWT token using <code>/jwt/custom/generate</code><br>
+      2. Copy the <code>token</code> from the response<br>
+      3. Click the <strong>"Authorize" button</strong> in the API docs below<br>
+      4. Enter: <code>Bearer &lt;your-token&gt;</code><br>
+      5. Test protected endpoints like <code>/jwt/custom/list/me</code>
     </div>
   </div>
 
