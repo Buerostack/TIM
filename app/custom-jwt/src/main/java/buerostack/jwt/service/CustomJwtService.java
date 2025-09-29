@@ -18,8 +18,56 @@ import java.util.*;
    meta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); meta.setClaimKeys(String.join(",", claims.keySet())); metaRepo.save(meta); return token; }
  public boolean isRevoked(String token){ try{ var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
    return denylistRepo.findById(jti).isPresent(); }catch(Exception e){ return true; } }
- @Transactional public void denylist(String token) throws Exception { var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
-   var dl = new CustomDenylist(); dl.setJwtUuid(jti); dl.setDenylistedAt(Instant.now()); dl.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); denylistRepo.save(dl); }
+ @Transactional public boolean denylist(String token) throws Exception { return denylist(token, null); }
+
+ @Transactional public boolean denylist(String token, String reason) throws Exception { var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
+
+   // Check if already revoked
+   if (denylistRepo.findById(jti).isPresent()) {
+       return false; // Already revoked
+   }
+
+   var dl = new CustomDenylist(); dl.setJwtUuid(jti); dl.setDenylistedAt(Instant.now()); dl.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); dl.setReason(reason); denylistRepo.save(dl);
+   return true; // Newly revoked
+ }
+
+ @Transactional public Map<String, Object> bulkDenylist(List<String> tokens) {
+   return bulkDenylist(tokens, null);
+ }
+
+ @Transactional public Map<String, Object> bulkDenylist(List<String> tokens, String reason) {
+   Map<String, Object> result = new HashMap<>();
+   List<String> newlyRevoked = new ArrayList<>();
+   List<String> alreadyRevoked = new ArrayList<>();
+   List<Map<String, String>> failed = new ArrayList<>();
+
+   for (String token : tokens) {
+     try {
+       boolean wasNewlyRevoked = denylist(token, reason);
+       String tokenPrefix = token.substring(0, Math.min(20, token.length())) + "...";
+       if (wasNewlyRevoked) {
+         newlyRevoked.add(tokenPrefix);
+       } else {
+         alreadyRevoked.add(tokenPrefix);
+       }
+     } catch (Exception e) {
+       Map<String, String> failure = new HashMap<>();
+       failure.put("token", token.substring(0, Math.min(20, token.length())) + "...");
+       failure.put("reason", e.getMessage());
+       failed.add(failure);
+     }
+   }
+
+   result.put("total", tokens.size());
+   result.put("newly_revoked", newlyRevoked.size());
+   result.put("already_revoked", alreadyRevoked.size());
+   result.put("failed", failed.size());
+   result.put("newly_revoked_tokens", newlyRevoked);
+   result.put("already_revoked_tokens", alreadyRevoked);
+   result.put("failed_tokens", failed);
+
+   return result;
+ }
 
  @Transactional public String extend(String oldToken, String issuer, List<String> audiences, long ttl) throws Exception {
    // Parse and validate the old token

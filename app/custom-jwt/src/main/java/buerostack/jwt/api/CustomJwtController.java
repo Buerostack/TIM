@@ -138,17 +138,90 @@ public class CustomJwtController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
-            customJwtService.denylist(request.getToken());
+            boolean wasNewlyRevoked = customJwtService.denylist(request.getToken(), request.getReason());
 
             Map<String, Object> response = new HashMap<>();
-            response.put("status", "revoked");
-            response.put("message", "Token has been successfully revoked");
-            return ResponseEntity.ok(response);
+            if (wasNewlyRevoked) {
+                response.put("status", "revoked");
+                response.put("message", "Token has been successfully revoked");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("status", "already_revoked");
+                response.put("message", "Token was already revoked");
+                return ResponseEntity.status(409).body(response);
+            }
 
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "revocation_failed");
             errorResponse.put("message", "Failed to revoke token: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/revoke/bulk")
+    public ResponseEntity<?> bulkRevoke(@RequestBody JwtBulkRevokeRequest request) {
+        try {
+            if (request.getTokens() == null || request.getTokens().isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "invalid_request");
+                errorResponse.put("message", "Tokens list is required and cannot be empty");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Limit bulk operations to prevent abuse
+            if (request.getTokens().size() > 100) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "request_too_large");
+                errorResponse.put("message", "Cannot revoke more than 100 tokens at once");
+                errorResponse.put("provided", request.getTokens().size());
+                errorResponse.put("maximum", 100);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            Map<String, Object> result = customJwtService.bulkDenylist(request.getTokens(), request.getReason());
+
+            // Add reason if provided
+            if (request.getReason() != null && !request.getReason().trim().isEmpty()) {
+                result.put("reason", request.getReason());
+            }
+
+            result.put("status", "completed");
+
+            int newlyRevoked = (Integer) result.get("newly_revoked");
+            int alreadyRevoked = (Integer) result.get("already_revoked");
+            int failed = (Integer) result.get("failed");
+            int total = (Integer) result.get("total");
+
+            result.put("message", String.format("Bulk revocation completed: %d newly revoked, %d already revoked, %d failed",
+                newlyRevoked, alreadyRevoked, failed));
+
+            // Determine HTTP status code based on results
+            if (failed == 0) {
+                if (alreadyRevoked == 0) {
+                    // All tokens were newly revoked
+                    return ResponseEntity.ok(result);
+                } else if (newlyRevoked == 0) {
+                    // All tokens were already revoked
+                    return ResponseEntity.status(409).body(result);
+                } else {
+                    // Mixed: some newly revoked, some already revoked
+                    return ResponseEntity.status(207).body(result); // Multi-Status
+                }
+            } else {
+                if (newlyRevoked > 0 || alreadyRevoked > 0) {
+                    // Partial success with some failures
+                    return ResponseEntity.status(207).body(result); // Multi-Status
+                } else {
+                    // All failed
+                    return ResponseEntity.badRequest().body(result);
+                }
+            }
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "bulk_revocation_failed");
+            errorResponse.put("message", "Failed to process bulk revocation: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }

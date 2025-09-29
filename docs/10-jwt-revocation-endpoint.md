@@ -19,22 +19,39 @@ POST /jwt/custom/revoke
 **Request Body:**
 ```json
 {
-  "token": "eyJraWQiOiJqd3RzaWduIiwiYWxnIjoiUlMyNTYifQ..."
+  "token": "eyJraWQiOiJqd3RzaWduIiwiYWxnIjoiUlMyNTYifQ...",
+  "reason": "user_logout"
 }
 ```
 
 **Parameters:**
 - `token` (string, required): The JWT token to revoke
+- `reason` (string, optional): Reason for revocation (stored for audit purposes)
 
 ### Response Format
 
 **Content-Type:** `application/json`
 
-#### Success Response (HTTP 200)
+**HTTP Status Codes:**
+- **200 OK**: Token was successfully revoked (newly revoked)
+- **409 Conflict**: Token was already revoked (idempotent operation)
+- **400 Bad Request**: Invalid request or token format
+
+#### Success Responses
+
+**Newly Revoked Token (HTTP 200)**
 ```json
 {
   "status": "revoked",
   "message": "Token has been successfully revoked"
+}
+```
+
+**Already Revoked Token (HTTP 409)**
+```json
+{
+  "status": "already_revoked",
+  "message": "Token was already revoked"
 }
 ```
 
@@ -61,9 +78,9 @@ POST /jwt/custom/revoke
 ### Revocation Process
 
 1. **Token Parsing**: Extract JWT ID (`jti`) from the provided token
-2. **Database Storage**: Add token UUID to `custom.denylist` table
+2. **Database Storage**: Add token UUID to `custom.denylist` table with optional reason
 3. **Immediate Effect**: Token becomes invalid for all future validation requests
-4. **Audit Trail**: Revocation timestamp and expiration stored for cleanup
+4. **Audit Trail**: Revocation timestamp, expiration, and reason stored for audit compliance
 
 ### Database Impact
 
@@ -79,9 +96,9 @@ SELECT jwt_uuid FROM custom.denylist WHERE jwt_uuid = 'token-jti';
 
 **After Revocation:**
 ```sql
--- Token added to denylist
-SELECT jwt_uuid, denylisted_at FROM custom.denylist WHERE jwt_uuid = 'token-jti';
--- Returns: token-jti, 2025-09-28 21:45:30
+-- Token added to denylist with reason
+SELECT jwt_uuid, denylisted_at, reason FROM custom.denylist WHERE jwt_uuid = 'token-jti';
+-- Returns: token-jti, 2025-09-28 21:45:30, user_logout
 
 -- Validation now fails
 SELECT 'REVOKED' as status WHERE EXISTS (
@@ -109,7 +126,10 @@ async function logout(sessionToken) {
   const response = await fetch('/jwt/custom/revoke', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: sessionToken })
+    body: JSON.stringify({
+      token: sessionToken,
+      reason: "user_logout"
+    })
   });
 
   if (response.ok) {
@@ -127,7 +147,7 @@ async function logout(sessionToken) {
 # Emergency: Revoke compromised admin token
 curl -X POST http://localhost:8085/jwt/custom/revoke \
   -H "Content-Type: application/json" \
-  -d '{"token": "COMPROMISED_ADMIN_TOKEN"}'
+  -d '{"token": "COMPROMISED_ADMIN_TOKEN", "reason": "security_incident"}'
 ```
 
 ### 3. Service Deactivation
@@ -180,11 +200,17 @@ curl -X POST http://localhost:8085/jwt/custom/validate/boolean \
   -d "{\"token\": \"$TOKEN\"}"
 # Expected: true
 
-# Step 3: Revoke the token
+# Step 3: Revoke the token with reason
 curl -X POST http://localhost:8085/jwt/custom/revoke \
   -H "Content-Type: application/json" \
-  -d "{\"token\": \"$TOKEN\"}"
-# Expected: {"status":"revoked","message":"Token has been successfully revoked"}
+  -d "{\"token\": \"$TOKEN\", \"reason\": \"testing\"}"
+# Expected: HTTP 200 - {"status":"revoked","message":"Token has been successfully revoked"}
+
+# Step 3b: Try to revoke the same token again (idempotency test)
+curl -X POST http://localhost:8085/jwt/custom/revoke \
+  -H "Content-Type: application/json" \
+  -d "{\"token\": \"$TOKEN\", \"reason\": \"testing_again\"}"
+# Expected: HTTP 409 - {"status":"already_revoked","message":"Token was already revoked"}
 
 # Step 4: Verify token is now invalid
 curl -X POST http://localhost:8085/jwt/custom/validate/boolean \
@@ -272,23 +298,35 @@ describe('JWT Revocation Endpoint', () => {
     expect(result.error).toBe('revocation_failed');
   });
 
-  test('handles double revocation gracefully', async () => {
+  test('handles double revocation correctly', async () => {
     // First revocation
-    await fetch('/jwt/custom/revoke', {
+    const firstResponse = await fetch('/jwt/custom/revoke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: validToken })
+      body: JSON.stringify({
+        token: validToken,
+        reason: "first_revocation"
+      })
     });
+
+    expect(firstResponse.status).toBe(200);
+    const firstResult = await firstResponse.json();
+    expect(firstResult.status).toBe('revoked');
 
     // Second revocation of same token
-    const response = await fetch('/jwt/custom/revoke', {
+    const secondResponse = await fetch('/jwt/custom/revoke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: validToken })
+      body: JSON.stringify({
+        token: validToken,
+        reason: "second_revocation"
+      })
     });
 
-    // Should still succeed (idempotent operation)
-    expect(response.status).toBe(200);
+    // Should return 409 Conflict
+    expect(secondResponse.status).toBe(409);
+    const secondResult = await secondResponse.json();
+    expect(secondResult.status).toBe('already_revoked');
   });
 });
 ```
@@ -418,7 +456,8 @@ async function revokeMultipleTokens(tokens) {
 CREATE TABLE custom.denylist (
     jwt_uuid      UUID PRIMARY KEY,                    -- JWT's 'jti' claim
     denylisted_at TIMESTAMP NOT NULL DEFAULT now(),    -- Revocation timestamp
-    expires_at    TIMESTAMP NOT NULL                   -- Original expiration
+    expires_at    TIMESTAMP NOT NULL,                  -- Original expiration
+    reason        TEXT                                 -- Optional revocation reason
 );
 ```
 
@@ -660,7 +699,7 @@ POST /jwt/custom/revoke-user
 {"user": "user123", "reason": "Account deactivation"}
 ```
 
-**3. Revocation Reasons:**
+**3. Enhanced Revocation Metadata:**
 ```json
 {
   "token": "jwt_token_here",
@@ -671,6 +710,8 @@ POST /jwt/custom/revoke-user
   }
 }
 ```
+
+**Note**: Reason field is now implemented and stored in `custom.denylist.reason` column.
 
 **4. Revocation Notifications:**
 - Webhook notifications for revocation events

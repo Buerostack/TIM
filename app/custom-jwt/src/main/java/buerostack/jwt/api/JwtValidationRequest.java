@@ -13,6 +13,9 @@ public class JwtValidationRequest {
     @JsonProperty("issuer")
     private String issuer;
 
+    @JsonProperty("reason")
+    private String reason;
+
     public JwtValidationRequest() {}
 
     public JwtValidationRequest(String token, String audience) {
@@ -34,4 +37,7 @@ public class JwtValidationRequest {
 
     public String getIssuer() { return issuer; }
     public void setIssuer(String issuer) { this.issuer = issuer; }
+
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
 }

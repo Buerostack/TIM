@@ -105,7 +105,7 @@ ORDER BY issue_date, daily_count DESC;
 CREATE TABLE custom.denylist (
     jwt_uuid      UUID PRIMARY KEY,                     -- Links to jwt_metadata.jwt_uuid
     denylisted_at TIMESTAMP NOT NULL DEFAULT now(),     -- Revocation timestamp
-    expires_at    TIMESTAMP NOT NULL                    -- Original expiration (for cleanup)
+    expires_at    TIMESTAMP NOT NULL,                   -- Original expiration (for cleanup)\n    reason        TEXT                                  -- Optional revocation reason (audit)
 );
 
 -- Indexes
@@ -130,14 +130,14 @@ CREATE TABLE custom.denylist (
 - **Source**: Copied from original JWT's expiration
 - **Purpose**: Enables cleanup of expired denylist entries
 - **Optimization**: Prevents denylist from growing indefinitely
-- **Cleanup**: Automated removal after token would have expired naturally
+- **Cleanup**: Automated removal after token would have expired naturally\n\n**`reason` (TEXT, NULLABLE)**\n- **Purpose**: Optional audit trail for revocation reasoning\n- **Examples**: \"user_logout\", \"security_incident\", \"admin_action\"\n- **Use Cases**: Compliance reporting, security analysis, incident investigation\n- **Storage**: Free-form text field for maximum flexibility
 
 #### Usage Patterns
 
 **Token Revocation:**
 ```java
 // CustomJwtService.denylist()
-public void denylist(String token) throws Exception {
+public void denylist(String token, String reason) throws Exception {
     var jwt = SignedJWT.parse(token);
     var jti = UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
 
@@ -145,6 +145,7 @@ public void denylist(String token) throws Exception {
     dl.setJwtUuid(jti);                                      // Link to token
     dl.setDenylistedAt(Instant.now());                      // Revocation time
     dl.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant());
+    dl.setReason(reason);                                    // Audit reason
     denylistRepo.save(dl);
 }
 ```

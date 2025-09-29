@@ -4,7 +4,8 @@ CREATE SCHEMA IF NOT EXISTS tara;
 CREATE TABLE IF NOT EXISTS custom.denylist (
   jwt_uuid uuid PRIMARY KEY,
   denylisted_at timestamp NOT NULL DEFAULT now(),
-  expires_at timestamp NOT NULL
+  expires_at timestamp NOT NULL,
+  reason text
 );
 CREATE INDEX IF NOT EXISTS idx_custom_denylist_exp ON custom.denylist (expires_at);
 
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS custom.jwt_metadata (
 CREATE TABLE IF NOT EXISTS tara.denylist (
   jwt_uuid uuid PRIMARY KEY,
   denylisted_at timestamp NOT NULL DEFAULT now(),
-  expires_at timestamp NOT NULL
+  expires_at timestamp NOT NULL,
+  reason text
 );
 CREATE INDEX IF NOT EXISTS idx_tara_denylist_exp ON tara.denylist (expires_at);
 
