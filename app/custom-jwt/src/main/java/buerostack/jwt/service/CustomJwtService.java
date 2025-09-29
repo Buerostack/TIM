@@ -8,6 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.*;
+import java.time.format.DateTimeParseException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import buerostack.jwt.api.JwtListRequest;
+import buerostack.jwt.api.JwtListResponse;
+import buerostack.jwt.api.JwtTokenSummary;
 @Service public class CustomJwtService {
  private final JwtSignerService signer; private final CustomDenylistRepo denylistRepo; private final CustomJwtMetadataRepo metaRepo;
  public CustomJwtService(JwtSignerService s, CustomDenylistRepo d, CustomJwtMetadataRepo m){ this.signer=s; this.denylistRepo=d; this.metaRepo=m; }
@@ -15,7 +23,10 @@ import java.util.*;
    String token = signer.sign(claims, issuer, audiences, ttl);
    var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
    var meta = new CustomJwtMetadata(); meta.setJwtUuid(jti); meta.setIssuedAt(jwt.getJWTClaimsSet().getIssueTime().toInstant());
-   meta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); meta.setClaimKeys(String.join(",", claims.keySet())); metaRepo.save(meta); return token; }
+   meta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); meta.setClaimKeys(String.join(",", claims.keySet())); meta.setSubject(jwt.getJWTClaimsSet().getSubject()); meta.setJwtName(jwtName);
+   meta.setIssuer(jwt.getJWTClaimsSet().getIssuer());
+   meta.setAudience(jwt.getJWTClaimsSet().getAudience() != null ? String.join(",", jwt.getJWTClaimsSet().getAudience()) : null);
+   metaRepo.save(meta); return token; }
  public boolean isRevoked(String token){ try{ var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
    return denylistRepo.findById(jti).isPresent(); }catch(Exception e){ return true; } }
  @Transactional public boolean denylist(String token) throws Exception { return denylist(token, null); }
@@ -115,6 +126,94 @@ import java.util.*;
    denylist(oldToken);
 
    return newToken;
+ }
+
+ public JwtListResponse listUserTokens(String subject, JwtListRequest request) {
+   try {
+     // Parse date filters
+     Instant issuedAfter = parseInstant(request.getIssuedAfter());
+     Instant issuedBefore = parseInstant(request.getIssuedBefore());
+     Instant expiresAfter = parseInstant(request.getExpiresAfter());
+     Instant expiresBefore = parseInstant(request.getExpiresBefore());
+
+     // Create pagination
+     int page = request.getOffset() != null ? request.getOffset() : 0;
+     int size = request.getLimit() != null ? request.getLimit() : 20;
+     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "issuedAt"));
+
+     // Query with filters - temporarily use simple method
+     Page<CustomJwtMetadata> resultPage = metaRepo.findBySubject(subject, pageable);
+
+     // Convert to response format
+     List<JwtTokenSummary> tokens = resultPage.getContent().stream()
+       .map(this::convertToTokenSummary)
+       .toList();
+
+     // Build response
+     JwtListResponse response = new JwtListResponse();
+     response.setTokens(tokens);
+
+     JwtListResponse.PaginationInfo pagination = new JwtListResponse.PaginationInfo();
+     pagination.setTotal(resultPage.getTotalElements());
+     pagination.setPage(resultPage.getNumber());
+     pagination.setSize(resultPage.getSize());
+     pagination.setTotalPages(resultPage.getTotalPages());
+     response.setPagination(pagination);
+
+     return response;
+   } catch (Exception e) {
+     // Return empty response on error
+     JwtListResponse response = new JwtListResponse();
+     response.setTokens(new ArrayList<>());
+     JwtListResponse.PaginationInfo pagination = new JwtListResponse.PaginationInfo();
+     pagination.setTotal(0L);
+     pagination.setPage(0);
+     pagination.setSize(0);
+     pagination.setTotalPages(0);
+     response.setPagination(pagination);
+     return response;
+   }
+ }
+
+ private JwtTokenSummary convertToTokenSummary(CustomJwtMetadata metadata) {
+   JwtTokenSummary summary = new JwtTokenSummary();
+   summary.setJti(metadata.getJwtUuid().toString());
+   summary.setSubject(metadata.getSubject());
+   summary.setJwtName(metadata.getJwtName());
+   summary.setIssuedAt(metadata.getIssuedAt());
+   summary.setExpiresAt(metadata.getExpiresAt());
+   summary.setIssuer(metadata.getIssuer());
+   summary.setAudience(metadata.getAudience());
+
+   // Determine status
+   boolean isExpired = metadata.getExpiresAt().isBefore(Instant.now());
+   boolean isRevoked = denylistRepo.findById(metadata.getJwtUuid()).isPresent();
+
+   if (isRevoked) {
+     summary.setStatus("revoked");
+     var denylistEntry = denylistRepo.findById(metadata.getJwtUuid()).orElse(null);
+     if (denylistEntry != null) {
+       summary.setRevokedAt(denylistEntry.getDenylistedAt());
+       summary.setRevocationReason(denylistEntry.getReason());
+     }
+   } else if (isExpired) {
+     summary.setStatus("expired");
+   } else {
+     summary.setStatus("active");
+   }
+
+   return summary;
+ }
+
+ private Instant parseInstant(String dateString) {
+   if (dateString == null || dateString.trim().isEmpty()) {
+     return null;
+   }
+   try {
+     return Instant.parse(dateString);
+   } catch (DateTimeParseException e) {
+     return null;
+   }
  }
 
  public JwtValidationResponse validate(String token, String expectedAudience, String expectedIssuer) throws Exception {

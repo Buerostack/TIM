@@ -10,6 +10,7 @@
     <module>common</module>
     <module>custom-jwt</module>
     <module>tara-jwt</module>
+    <module>oauth2-oidc</module>
     <module>server</module>
   </modules>
   <properties>

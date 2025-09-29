@@ -13,8 +13,14 @@ CREATE TABLE IF NOT EXISTS custom.jwt_metadata (
   jwt_uuid uuid PRIMARY KEY,
   claim_keys text NOT NULL,
   issued_at timestamp NOT NULL,
-  expires_at timestamp NOT NULL
+  expires_at timestamp NOT NULL,
+  subject text,
+  jwt_name text,
+  audience text,
+  issuer text
 );
+CREATE INDEX IF NOT EXISTS idx_custom_jwt_metadata_subject ON custom.jwt_metadata (subject);
+CREATE INDEX IF NOT EXISTS idx_custom_jwt_metadata_issued ON custom.jwt_metadata (issued_at);
 
 CREATE TABLE IF NOT EXISTS tara.denylist (
   jwt_uuid uuid PRIMARY KEY,

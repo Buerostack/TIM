@@ -21,6 +21,18 @@ public class CustomJwtMetadata {
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
+    @Column(name = "subject")
+    private String subject;
+
+    @Column(name = "jwt_name")
+    private String jwtName;
+
+    @Column(name = "audience")
+    private String audience;
+
+    @Column(name = "issuer")
+    private String issuer;
+
     public CustomJwtMetadata() {}
 
     public CustomJwtMetadata(String claimKeys, Instant issuedAt, Instant expiresAt) {
@@ -40,4 +52,16 @@ public class CustomJwtMetadata {
 
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+
+    public String getSubject() { return subject; }
+    public void setSubject(String subject) { this.subject = subject; }
+
+    public String getJwtName() { return jwtName; }
+    public void setJwtName(String jwtName) { this.jwtName = jwtName; }
+
+    public String getAudience() { return audience; }
+    public void setAudience(String audience) { this.audience = audience; }
+
+    public String getIssuer() { return issuer; }
+    public void setIssuer(String issuer) { this.issuer = issuer; }
 }

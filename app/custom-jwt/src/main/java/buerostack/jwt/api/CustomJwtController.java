@@ -309,4 +309,55 @@ public class CustomJwtController {
             }
         }
     }
+
+    @PostMapping("/list/me")
+    public ResponseEntity<?> listMyTokens(@RequestBody(required = false) JwtListRequest request,
+                                         @RequestHeader(value = "Authorization", required = true) String authHeader) {
+        try {
+            // Validate Authorization header format
+            if (!authHeader.startsWith("Bearer ")) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "invalid_authorization");
+                errorResponse.put("message", "Authorization header must be in format 'Bearer <token>'");
+                return ResponseEntity.status(401).body(errorResponse);
+            }
+
+            // Extract and validate the token
+            String token = authHeader.substring(7);
+
+            // Validate the token first
+            JwtValidationResponse validation = customJwtService.validate(token, null, null);
+            if (!validation.isValid() || !validation.isActive()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "invalid_token");
+                errorResponse.put("message", "Token is invalid, expired, or revoked");
+                return ResponseEntity.status(401).body(errorResponse);
+            }
+
+            // Extract subject from the validated token
+            var jwt = SignedJWT.parse(token);
+            String subject = jwt.getJWTClaimsSet().getSubject();
+
+            if (subject == null || subject.trim().isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "missing_subject");
+                errorResponse.put("message", "Token does not contain a valid subject claim");
+                return ResponseEntity.status(401).body(errorResponse);
+            }
+
+            // Use empty request if none provided
+            if (request == null) {
+                request = new JwtListRequest();
+            }
+
+            JwtListResponse response = customJwtService.listUserTokens(subject, request);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "authentication_failed");
+            errorResponse.put("message", "Failed to authenticate request: " + e.getMessage());
+            return ResponseEntity.status(401).body(errorResponse);
+        }
+    }
 }
