@@ -59,7 +59,7 @@ public class UserProfile {
         private String avatarUrl;
         private String locale;
 
-        // TARA-specific
+        // Government/eID-specific (TARA, other national identity providers)
         private String nationalId;
         private String authenticationMethod;
         private String levelOfAssurance;

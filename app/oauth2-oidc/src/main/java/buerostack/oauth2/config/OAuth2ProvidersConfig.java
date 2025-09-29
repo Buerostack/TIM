@@ -24,11 +24,6 @@ public class OAuth2ProvidersConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2ProvidersConfig.class);
 
-    @Bean
-    public OAuth2ProvidersProperties oauth2ProvidersProperties() {
-        return new OAuth2ProvidersProperties();
-    }
-
     /**
      * Properties class for OAuth2 providers configuration
      */

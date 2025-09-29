@@ -170,20 +170,20 @@ public class SessionManagementService {
      * Clean up expired sessions
      */
     public void cleanupExpiredSessions() {
-        Instant now = Instant.now();
-        int cleanedCount = 0;
+        final Instant now = Instant.now();
+        final int[] cleanedCount = {0};
 
         sessionStorage.entrySet().removeIf(entry -> {
             AuthSession session = entry.getValue();
             boolean isExpired = session.getExpiresAt() != null && session.getExpiresAt().isBefore(now);
             if (isExpired) {
-                cleanedCount++;
+                cleanedCount[0]++;
             }
             return isExpired;
         });
 
-        if (cleanedCount > 0) {
-            logger.info("Cleaned up {} expired sessions", cleanedCount);
+        if (cleanedCount[0] > 0) {
+            logger.info("Cleaned up {} expired sessions", cleanedCount[0]);
         }
     }
 

@@ -30,7 +30,6 @@ public class OAuth2CacheConfig {
         return Caffeine.newBuilder()
                 .maximumSize(100)
                 .expireAfterWrite(1, TimeUnit.HOURS)
-                .refreshAfterWrite(30, TimeUnit.MINUTES)
                 .recordStats();
     }
 }

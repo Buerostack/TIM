@@ -1,6 +1,7 @@
 package buerostack.oauth2.api;
 
 import buerostack.oauth2.config.OAuth2ProvidersConfig.OAuth2ProvidersProperties;
+import buerostack.oauth2.model.ProviderConfig;
 import buerostack.oauth2.service.OAuth2AuthenticationService;
 import buerostack.oauth2.service.OAuth2AuthenticationService.AuthenticationInitiation;
 import buerostack.oauth2.service.OAuth2AuthenticationService.CallbackValidation;

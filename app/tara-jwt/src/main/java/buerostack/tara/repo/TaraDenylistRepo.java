@@ -1,2 +1,0 @@
-package buerostack.tara.repo; import buerostack.tara.entity.TaraDenylist; import org.springframework.data.jpa.repository.JpaRepository; import java.util.UUID;
-public interface TaraDenylistRepo extends JpaRepository<TaraDenylist, UUID> {}

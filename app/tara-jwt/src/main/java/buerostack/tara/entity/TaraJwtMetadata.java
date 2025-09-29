@@ -1,5 +1,0 @@
-package buerostack.tara.entity; import jakarta.persistence.*; import java.time.Instant; import java.util.UUID;
-@Entity @Table(name="jwt_metadata", schema="tara") public class TaraJwtMetadata {
- @Id @Column(name="jwt_uuid") private UUID jwtUuid; @Column(name="claim_keys") private String claimKeys; @Column(name="issued_at") private Instant issuedAt; @Column(name="expires_at") private Instant expiresAt;
- public UUID getJwtUuid(){return jwtUuid;} public void setJwtUuid(UUID v){this.jwtUuid=v;} public String getClaimKeys(){return claimKeys;} public void setClaimKeys(String v){this.claimKeys=v;}
- public Instant getIssuedAt(){return issuedAt;} public void setIssuedAt(Instant v){this.issuedAt=v;} public Instant getExpiresAt(){return expiresAt;} public void setExpiresAt(Instant v){this.expiresAt=v;} }

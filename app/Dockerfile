@@ -5,12 +5,12 @@ RUN apk add --no-cache maven
 COPY pom.xml ./
 COPY common/pom.xml common/pom.xml
 COPY custom-jwt/pom.xml custom-jwt/pom.xml
-COPY tara-jwt/pom.xml tara-jwt/pom.xml
+COPY oauth2-oidc/pom.xml oauth2-oidc/pom.xml
 COPY server/pom.xml server/pom.xml
 RUN mvn -q -DskipTests dependency:go-offline
 COPY common common
 COPY custom-jwt custom-jwt
-COPY tara-jwt tara-jwt
+COPY oauth2-oidc oauth2-oidc
 COPY server server
 RUN mvn -q -DskipTests -pl server -am package
 

@@ -9,7 +9,6 @@
   <modules>
     <module>common</module>
     <module>custom-jwt</module>
-    <module>tara-jwt</module>
     <module>oauth2-oidc</module>
     <module>server</module>
   </modules>
@@ -17,7 +16,6 @@
     <java.version>17</java.version>
     <maven.compiler.release>17</maven.compiler.release>
     <spring.boot.version>3.3.3</spring.boot.version>
-    <tara.jwt.name>TIM_TARA_JWT</tara.jwt.name>
   </properties>
   <dependencyManagement>
     <dependencies>

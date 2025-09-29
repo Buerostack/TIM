@@ -1,1 +1,1 @@
-package buerostack.config; public final class BuildConstants { private BuildConstants(){} public static final String TIM_TARA_JWT_NAME = "TIM_TARA_JWT"; }
+package buerostack.config; public final class BuildConstants { private BuildConstants(){} }

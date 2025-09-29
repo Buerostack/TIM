@@ -1,2 +1,0 @@
-package buerostack.tara.repo; import buerostack.tara.entity.TaraOauthState; import org.springframework.data.jpa.repository.JpaRepository;
-public interface TaraOauthStateRepo extends JpaRepository<TaraOauthState, String> {}
