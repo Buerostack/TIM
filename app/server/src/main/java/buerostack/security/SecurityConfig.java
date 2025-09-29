@@ -23,4 +23,12 @@ public class SecurityConfig {
         .authorizeHttpRequests(a -> a.anyRequest().permitAll());
     return http.build();
   }
+
+  @Bean
+  SecurityFilterChain staticChain(HttpSecurity http) throws Exception {
+    http.securityMatcher("/", "/*.html", "/*.yaml", "/*.css", "/*.js")
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(a -> a.anyRequest().permitAll());
+    return http.build();
+  }
 }
