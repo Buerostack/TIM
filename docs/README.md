@@ -23,8 +23,6 @@ TIM (Token Identity Manager) is a comprehensive authentication and token managem
 ### 🗄️ Database
 - **[Database Schema](database/schema.md)** - Complete schema documentation with indexes and relationships
 
-### 📁 Archive
-- **[archived/](archived/)** - Historical documentation and TODO items
 
 ## Core Features
 
