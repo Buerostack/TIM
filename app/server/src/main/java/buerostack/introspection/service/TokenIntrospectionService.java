@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +110,7 @@ public class TokenIntrospectionService {
                 }
             }
 
-            // External OAuth2 tokens (Google, GitHub, etc.)
+            // External OAuth2 tokens (Google, GitHub, etc.) or auth module tokens
             if (issuer != null && !issuer.equals("TIM")) {
                 return "oauth2_access";
             }

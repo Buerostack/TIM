@@ -2,16 +2,16 @@
 
 ## Overview
 TIM 2.0 uses PostgreSQL with two main schemas:
-- **custom**: Custom JWT token management
-- **tara**: TARA/OAuth2 authentication support
+- **custom_jwt**: Custom JWT token management
+- **auth**: OAuth2 authentication support (TARA, Google, GitHub, etc.)
 
-## Schema: custom
+## Schema: custom_jwt
 
 ### Table: jwt_metadata
 Stores metadata for all custom JWT tokens issued by TIM.
 
 ```sql
-CREATE TABLE custom.jwt_metadata (
+CREATE TABLE custom_jwt.jwt_metadata (
   jwt_uuid uuid PRIMARY KEY,
   claim_keys text NOT NULL,
   issued_at timestamp NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE custom.jwt_metadata (
 Tracks revoked JWT tokens to prevent reuse.
 
 ```sql
-CREATE TABLE custom.denylist (
+CREATE TABLE custom_jwt.denylist (
   jwt_uuid uuid PRIMARY KEY,
   denylisted_at timestamp NOT NULL DEFAULT now(),
   expires_at timestamp NOT NULL,
@@ -58,13 +58,13 @@ CREATE TABLE custom.denylist (
 - `expires_at`: Original token expiration (for cleanup)
 - `reason`: Optional revocation reason
 
-## Schema: tara
+## Schema: auth
 
 ### Table: jwt_metadata
-Simplified metadata for TARA OAuth2 tokens.
+Simplified metadata for OAuth2 tokens (TARA, Google, GitHub, etc.).
 
 ```sql
-CREATE TABLE tara.jwt_metadata (
+CREATE TABLE auth.jwt_metadata (
   jwt_uuid uuid PRIMARY KEY,
   claim_keys text NOT NULL,
   issued_at timestamp NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE tara.jwt_metadata (
 Revoked TARA tokens tracking.
 
 ```sql
-CREATE TABLE tara.denylist (
+CREATE TABLE auth.denylist (
   jwt_uuid uuid PRIMARY KEY,
   denylisted_at timestamp NOT NULL DEFAULT now(),
   expires_at timestamp NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE tara.denylist (
 OAuth2 state management for PKCE flows.
 
 ```sql
-CREATE TABLE tara.oauth_state (
+CREATE TABLE auth.oauth_state (
   state text PRIMARY KEY,
   created_at timestamp NOT NULL DEFAULT now(),
   pkce_verifier text
@@ -112,17 +112,17 @@ CREATE TABLE tara.oauth_state (
 ## Data Flow
 
 ### Custom JWT Lifecycle
-1. **Generation**: Insert into `custom.jwt_metadata`
-2. **Usage**: Validate against `custom.denylist`
-3. **Extension**: Update `expires_at` in `custom.jwt_metadata`
-4. **Revocation**: Insert into `custom.denylist`
+1. **Generation**: Insert into `custom_jwt.jwt_metadata`
+2. **Usage**: Validate against `custom_jwt.denylist`
+3. **Extension**: Update `expires_at` in `custom_jwt.jwt_metadata`
+4. **Revocation**: Insert into `custom_jwt.denylist`
 5. **Cleanup**: Remove expired entries from both tables
 
 ### OAuth2/TARA Flow
-1. **Login Initiation**: Insert state into `tara.oauth_state`
-2. **Callback**: Validate state, insert token into `tara.jwt_metadata`
-3. **Token Usage**: Check against `tara.denylist`
-4. **Logout**: Insert into `tara.denylist`
+1. **Login Initiation**: Insert state into `auth.oauth_state`
+2. **Callback**: Validate state, insert token into `auth.jwt_metadata`
+3. **Token Usage**: Check against `auth.denylist`
+4. **Logout**: Insert into `auth.denylist`
 
 ## Performance Considerations
 
@@ -134,25 +134,25 @@ CREATE TABLE tara.oauth_state (
 ### Cleanup Strategy
 ```sql
 -- Clean expired denylist entries
-DELETE FROM custom.denylist WHERE expires_at < now();
-DELETE FROM tara.denylist WHERE expires_at < now();
+DELETE FROM custom_jwt.denylist WHERE expires_at < now();
+DELETE FROM auth.denylist WHERE expires_at < now();
 
 -- Clean expired OAuth states (recommend 1 hour TTL)
-DELETE FROM tara.oauth_state WHERE created_at < now() - interval '1 hour';
+DELETE FROM auth.oauth_state WHERE created_at < now() - interval '1 hour';
 ```
 
 ### Query Patterns
 ```sql
 -- Find user's active tokens
-SELECT * FROM custom.jwt_metadata
+SELECT * FROM custom_jwt.jwt_metadata
 WHERE subject = ?
-  AND jwt_uuid NOT IN (SELECT jwt_uuid FROM custom.denylist)
+  AND jwt_uuid NOT IN (SELECT jwt_uuid FROM custom_jwt.denylist)
   AND expires_at > now()
 ORDER BY issued_at DESC;
 
 -- Validate token
-SELECT 1 FROM custom.jwt_metadata m
-LEFT JOIN custom.denylist d ON m.jwt_uuid = d.jwt_uuid
+SELECT 1 FROM custom_jwt.jwt_metadata m
+LEFT JOIN custom_jwt.denylist d ON m.jwt_uuid = d.jwt_uuid
 WHERE m.jwt_uuid = ?
   AND m.expires_at > now()
   AND d.jwt_uuid IS NULL;

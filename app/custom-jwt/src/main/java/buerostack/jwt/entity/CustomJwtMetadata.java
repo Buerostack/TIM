@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "jwt_metadata", schema = "custom")
+@Table(name = "jwt_metadata", schema = "custom_jwt")
 public class CustomJwtMetadata {
 
     @Id
@@ -32,6 +32,12 @@ public class CustomJwtMetadata {
 
     @Column(name = "issuer")
     private String issuer;
+
+    @Column(name = "superseded_by")
+    private UUID supersededBy;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 
     public CustomJwtMetadata() {}
 
@@ -64,4 +70,10 @@ public class CustomJwtMetadata {
 
     public String getIssuer() { return issuer; }
     public void setIssuer(String issuer) { this.issuer = issuer; }
+
+    public UUID getSupersededBy() { return supersededBy; }
+    public void setSupersededBy(UUID supersededBy) { this.supersededBy = supersededBy; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

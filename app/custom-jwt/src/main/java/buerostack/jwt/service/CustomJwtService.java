@@ -119,14 +119,35 @@ import buerostack.jwt.api.JwtTokenSummary;
    var newJwt = SignedJWT.parse(newToken);
    var newJti = java.util.UUID.fromString(newJwt.getJWTClaimsSet().getJWTID());
 
+   // Create new metadata record for extended token
    var meta = new CustomJwtMetadata();
    meta.setJwtUuid(newJti);
    meta.setIssuedAt(newJwt.getJWTClaimsSet().getIssueTime().toInstant());
    meta.setExpiresAt(newJwt.getJWTClaimsSet().getExpirationTime().toInstant());
    meta.setClaimKeys(String.join(",", existingClaims.keySet()));
+   meta.setSubject(newJwt.getJWTClaimsSet().getSubject());
+   meta.setJwtName(existingClaims.get("jwt_name") != null ? existingClaims.get("jwt_name").toString() : null);
+   meta.setAudience(newJwt.getJWTClaimsSet().getAudience() != null ? String.join(",", newJwt.getJWTClaimsSet().getAudience()) : null);
+   meta.setIssuer(newJwt.getJWTClaimsSet().getIssuer());
+   meta.setIsActive(true);
    metaRepo.save(meta);
 
-   // Revoke the old token
+   // Mark old token as superseded by new token (INSERT supersession record)
+   var oldJti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
+   var oldMeta = new CustomJwtMetadata();
+   oldMeta.setJwtUuid(oldJti);
+   oldMeta.setIssuedAt(jwt.getJWTClaimsSet().getIssueTime().toInstant());
+   oldMeta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant());
+   oldMeta.setClaimKeys(String.join(",", existingClaims.keySet()));
+   oldMeta.setSubject(jwt.getJWTClaimsSet().getSubject());
+   oldMeta.setJwtName(existingClaims.get("jwt_name") != null ? existingClaims.get("jwt_name").toString() : null);
+   oldMeta.setAudience(jwt.getJWTClaimsSet().getAudience() != null ? String.join(",", jwt.getJWTClaimsSet().getAudience()) : null);
+   oldMeta.setIssuer(jwt.getJWTClaimsSet().getIssuer());
+   oldMeta.setSupersededBy(newJti);
+   oldMeta.setIsActive(false);
+   metaRepo.save(oldMeta);
+
+   // Add old token to denylist (INSERT operation)
    denylist(oldToken);
 
    return newToken;

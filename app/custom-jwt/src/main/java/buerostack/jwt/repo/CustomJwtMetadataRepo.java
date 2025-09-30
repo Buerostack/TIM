@@ -16,14 +16,16 @@ public interface CustomJwtMetadataRepo extends JpaRepository<CustomJwtMetadata, 
 
     Page<CustomJwtMetadata> findBySubject(String subject, Pageable pageable);
 
-    @Query(value = "SELECT * FROM custom.jwt_metadata m WHERE m.subject = :subject " +
+    @Query(value = "SELECT * FROM custom_jwt.jwt_metadata m WHERE m.subject = :subject " +
+           "AND m.is_active = true " +
            "AND (:issuedAfter IS NULL OR m.issued_at >= :issuedAfter) " +
            "AND (:issuedBefore IS NULL OR m.issued_at <= :issuedBefore) " +
            "AND (:expiresAfter IS NULL OR m.expires_at >= :expiresAfter) " +
            "AND (:expiresBefore IS NULL OR m.expires_at <= :expiresBefore) " +
            "AND (:jwtName IS NULL OR m.jwt_name = :jwtName) " +
            "ORDER BY m.issued_at DESC",
-           countQuery = "SELECT count(*) FROM custom.jwt_metadata m WHERE m.subject = :subject " +
+           countQuery = "SELECT count(*) FROM custom_jwt.jwt_metadata m WHERE m.subject = :subject " +
+           "AND m.is_active = true " +
            "AND (:issuedAfter IS NULL OR m.issued_at >= :issuedAfter) " +
            "AND (:issuedBefore IS NULL OR m.issued_at <= :issuedBefore) " +
            "AND (:expiresAfter IS NULL OR m.expires_at >= :expiresAfter) " +
