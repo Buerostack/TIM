@@ -12,6 +12,7 @@ services:
     volumes:
       - tim-pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+      - ./db/schema-security.sql:/docker-entrypoint-initdb.d/01-security.sql:ro
 
   tim:
     build:

@@ -25,12 +25,23 @@ import buerostack.jwt.api.JwtTokenSummary;
    claimsWithType.put("token_type", "custom_jwt");
 
    String token = signer.sign(claimsWithType, issuer, audiences, ttl);
-   var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
-   var meta = new CustomJwtMetadata(); meta.setJwtUuid(jti); meta.setIssuedAt(jwt.getJWTClaimsSet().getIssueTime().toInstant());
-   meta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); meta.setClaimKeys(String.join(",", claims.keySet())); meta.setSubject(jwt.getJWTClaimsSet().getSubject()); meta.setJwtName(jwtName);
+   var jwt = SignedJWT.parse(token);
+   var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
+
+   var meta = new CustomJwtMetadata(
+       jti,
+       String.join(",", claims.keySet()),
+       jwt.getJWTClaimsSet().getIssueTime().toInstant(),
+       jwt.getJWTClaimsSet().getExpirationTime().toInstant(),
+       jti // For new tokens, original_jwt_uuid is the same as jwt_uuid
+   );
+   meta.setSubject(jwt.getJWTClaimsSet().getSubject());
+   meta.setJwtName(jwtName);
    meta.setIssuer(jwt.getJWTClaimsSet().getIssuer());
    meta.setAudience(jwt.getJWTClaimsSet().getAudience() != null ? String.join(",", jwt.getJWTClaimsSet().getAudience()) : null);
-   metaRepo.save(meta); return token; }
+   metaRepo.save(meta);
+   return token;
+ }
  public boolean isRevoked(String token){ try{ var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
    return denylistRepo.findById(jti).isPresent(); }catch(Exception e){ return true; } }
  @Transactional public boolean denylist(String token) throws Exception { return denylist(token, null); }
@@ -88,6 +99,7 @@ import buerostack.jwt.api.JwtTokenSummary;
    // Parse and validate the old token
    var jwt = SignedJWT.parse(oldToken);
    var claims = jwt.getJWTClaimsSet();
+   var oldJti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
 
    // Validate the old token (must be valid but can be close to expiration)
    if (!signer.verify(oldToken)) {
@@ -102,6 +114,10 @@ import buerostack.jwt.api.JwtTokenSummary;
      throw new Exception("Token revoked - cannot extend");
    }
 
+   // Find the current version of this JWT to get the original JWT UUID
+   var currentMeta = metaRepo.findCurrentVersionByJwtUuid(oldJti)
+       .orElseThrow(() -> new Exception("JWT metadata not found"));
+
    // Extract existing claims from old token (preserve custom claims)
    Map<String, Object> existingClaims = new HashMap<>(claims.getClaims());
 
@@ -114,38 +130,23 @@ import buerostack.jwt.api.JwtTokenSummary;
 
    // Generate new token with existing claims
    String newToken = signer.sign(existingClaims, issuer, audiences, ttl);
-
-   // Store metadata for new token
    var newJwt = SignedJWT.parse(newToken);
    var newJti = java.util.UUID.fromString(newJwt.getJWTClaimsSet().getJWTID());
 
-   // Create new metadata record for extended token
-   var meta = new CustomJwtMetadata();
-   meta.setJwtUuid(newJti);
-   meta.setIssuedAt(newJwt.getJWTClaimsSet().getIssueTime().toInstant());
-   meta.setExpiresAt(newJwt.getJWTClaimsSet().getExpirationTime().toInstant());
-   meta.setClaimKeys(String.join(",", existingClaims.keySet()));
-   meta.setSubject(newJwt.getJWTClaimsSet().getSubject());
-   meta.setJwtName(existingClaims.get("jwt_name") != null ? existingClaims.get("jwt_name").toString() : null);
-   meta.setAudience(newJwt.getJWTClaimsSet().getAudience() != null ? String.join(",", newJwt.getJWTClaimsSet().getAudience()) : null);
-   meta.setIssuer(newJwt.getJWTClaimsSet().getIssuer());
-   meta.setIsActive(true);
-   metaRepo.save(meta);
-
-   // Mark old token as superseded by new token (INSERT supersession record)
-   var oldJti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
-   var oldMeta = new CustomJwtMetadata();
-   oldMeta.setJwtUuid(oldJti);
-   oldMeta.setIssuedAt(jwt.getJWTClaimsSet().getIssueTime().toInstant());
-   oldMeta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant());
-   oldMeta.setClaimKeys(String.join(",", existingClaims.keySet()));
-   oldMeta.setSubject(jwt.getJWTClaimsSet().getSubject());
-   oldMeta.setJwtName(existingClaims.get("jwt_name") != null ? existingClaims.get("jwt_name").toString() : null);
-   oldMeta.setAudience(jwt.getJWTClaimsSet().getAudience() != null ? String.join(",", jwt.getJWTClaimsSet().getAudience()) : null);
-   oldMeta.setIssuer(jwt.getJWTClaimsSet().getIssuer());
-   oldMeta.setSupersededBy(newJti);
-   oldMeta.setIsActive(false);
-   metaRepo.save(oldMeta);
+   // Create new metadata record for extended token (INSERT operation)
+   var extendedMeta = new CustomJwtMetadata(
+       newJti, // New JWT UUID for the extended token
+       String.join(",", existingClaims.keySet()),
+       newJwt.getJWTClaimsSet().getIssueTime().toInstant(),
+       newJwt.getJWTClaimsSet().getExpirationTime().toInstant(),
+       currentMeta.getOriginalJwtUuid() // Reference to the original JWT in the chain
+   );
+   extendedMeta.setSupersedes(currentMeta.getId()); // Reference to the previous version
+   extendedMeta.setSubject(newJwt.getJWTClaimsSet().getSubject());
+   extendedMeta.setJwtName(existingClaims.get("jwt_name") != null ? existingClaims.get("jwt_name").toString() : null);
+   extendedMeta.setAudience(newJwt.getJWTClaimsSet().getAudience() != null ? String.join(",", newJwt.getJWTClaimsSet().getAudience()) : null);
+   extendedMeta.setIssuer(newJwt.getJWTClaimsSet().getIssuer());
+   metaRepo.save(extendedMeta);
 
    // Add old token to denylist (INSERT operation)
    denylist(oldToken);

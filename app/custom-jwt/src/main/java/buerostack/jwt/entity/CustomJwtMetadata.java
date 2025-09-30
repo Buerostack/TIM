@@ -9,8 +9,14 @@ import java.util.UUID;
 public class CustomJwtMetadata {
 
     @Id
-    @Column(name = "jwt_uuid")
+    @Column(name = "id")
+    private UUID id;
+
+    @Column(name = "jwt_uuid", nullable = false)
     private UUID jwtUuid;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
     @Column(name = "claim_keys", nullable = false)
     private String claimKeys;
@@ -33,22 +39,34 @@ public class CustomJwtMetadata {
     @Column(name = "issuer")
     private String issuer;
 
-    @Column(name = "superseded_by")
-    private UUID supersededBy;
+    @Column(name = "supersedes")
+    private UUID supersedes;
 
-    @Column(name = "is_active")
-    private Boolean isActive = true;
+    @Column(name = "original_jwt_uuid", nullable = false)
+    private UUID originalJwtUuid;
 
-    public CustomJwtMetadata() {}
+    public CustomJwtMetadata() {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+    }
 
-    public CustomJwtMetadata(String claimKeys, Instant issuedAt, Instant expiresAt) {
+    public CustomJwtMetadata(UUID jwtUuid, String claimKeys, Instant issuedAt, Instant expiresAt, UUID originalJwtUuid) {
+        this();
+        this.jwtUuid = jwtUuid;
         this.claimKeys = claimKeys;
         this.issuedAt = issuedAt;
         this.expiresAt = expiresAt;
+        this.originalJwtUuid = originalJwtUuid;
     }
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public UUID getJwtUuid() { return jwtUuid; }
     public void setJwtUuid(UUID jwtUuid) { this.jwtUuid = jwtUuid; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
     public String getClaimKeys() { return claimKeys; }
     public void setClaimKeys(String claimKeys) { this.claimKeys = claimKeys; }
@@ -71,9 +89,9 @@ public class CustomJwtMetadata {
     public String getIssuer() { return issuer; }
     public void setIssuer(String issuer) { this.issuer = issuer; }
 
-    public UUID getSupersededBy() { return supersededBy; }
-    public void setSupersededBy(UUID supersededBy) { this.supersededBy = supersededBy; }
+    public UUID getSupersedes() { return supersedes; }
+    public void setSupersedes(UUID supersedes) { this.supersedes = supersedes; }
 
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public UUID getOriginalJwtUuid() { return originalJwtUuid; }
+    public void setOriginalJwtUuid(UUID originalJwtUuid) { this.originalJwtUuid = originalJwtUuid; }
 }

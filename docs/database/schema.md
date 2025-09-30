@@ -8,34 +8,49 @@ TIM 2.0 uses PostgreSQL with two main schemas:
 ## Schema: custom_jwt
 
 ### Table: jwt_metadata
-Stores metadata for all custom JWT tokens issued by TIM.
+Stores metadata for all custom JWT tokens issued by TIM. Uses INSERT-only approach with extension chain tracking.
 
 ```sql
 CREATE TABLE custom_jwt.jwt_metadata (
-  jwt_uuid uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  jwt_uuid uuid NOT NULL,
+  created_at timestamp NOT NULL DEFAULT now(),
   claim_keys text NOT NULL,
   issued_at timestamp NOT NULL,
   expires_at timestamp NOT NULL,
   subject text,
   jwt_name text,
   audience text,
-  issuer text
+  issuer text,
+  supersedes uuid, -- Previous version this JWT replaces
+  original_jwt_uuid uuid NOT NULL -- First JWT in the extension chain
 );
 ```
 
 **Indexes:**
 - `idx_custom_jwt_metadata_subject` on `subject` - Fast lookups by user
 - `idx_custom_jwt_metadata_issued` on `issued_at` - Chronological ordering
+- `idx_custom_jwt_metadata_jwt_uuid` on `(jwt_uuid, created_at DESC)` - Find current version
+- `idx_custom_jwt_metadata_original` on `original_jwt_uuid` - Extension chain queries
 
 **Fields:**
-- `jwt_uuid`: Unique identifier matching JWT `jti` claim
-- `claim_keys`: JSON serialized custom claims
-- `issued_at`: Token creation timestamp
-- `expires_at`: Token expiration timestamp
+- `id`: Primary key for this metadata record
+- `jwt_uuid`: JWT identifier matching JWT `jti` claim (can have multiple versions)
+- `created_at`: Database record creation timestamp (immutable)
+- `claim_keys`: Comma-separated custom claim names
+- `issued_at`: Token creation timestamp (from JWT)
+- `expires_at`: Token expiration timestamp (from JWT)
 - `subject`: User identifier (`sub` claim)
 - `jwt_name`: Human-readable token name
 - `audience`: Target audience (`aud` claim)
 - `issuer`: Token issuer (`iss` claim)
+- `supersedes`: Reference to previous version's `id` (for extensions)
+- `original_jwt_uuid`: Reference to the first JWT in extension chain
+
+**Extension Chain Logic:**
+- New tokens: `original_jwt_uuid = jwt_uuid`, `supersedes = NULL`
+- Extended tokens: `original_jwt_uuid = <original>`, `supersedes = <previous_id>`
+- Current version: `SELECT * WHERE jwt_uuid = ? ORDER BY created_at DESC LIMIT 1`
 
 ### Table: denylist
 Tracks revoked JWT tokens to prevent reuse.
@@ -43,6 +58,7 @@ Tracks revoked JWT tokens to prevent reuse.
 ```sql
 CREATE TABLE custom_jwt.denylist (
   jwt_uuid uuid PRIMARY KEY,
+  created_at timestamp NOT NULL DEFAULT now(),
   denylisted_at timestamp NOT NULL DEFAULT now(),
   expires_at timestamp NOT NULL,
   reason text
@@ -50,10 +66,11 @@ CREATE TABLE custom_jwt.denylist (
 ```
 
 **Indexes:**
-- `idx_custom_denylist_exp` on `expires_at` - Cleanup expired entries
+- `idx_custom_jwt_denylist_exp` on `expires_at` - Cleanup expired entries
 
 **Fields:**
 - `jwt_uuid`: References `jwt_metadata.jwt_uuid`
+- `created_at`: Database record creation timestamp (immutable)
 - `denylisted_at`: Revocation timestamp
 - `expires_at`: Original token expiration (for cleanup)
 - `reason`: Optional revocation reason
@@ -66,6 +83,7 @@ Simplified metadata for OAuth2 tokens (TARA, Google, GitHub, etc.).
 ```sql
 CREATE TABLE auth.jwt_metadata (
   jwt_uuid uuid PRIMARY KEY,
+  created_at timestamp NOT NULL DEFAULT now(),
   claim_keys text NOT NULL,
   issued_at timestamp NOT NULL,
   expires_at timestamp NOT NULL
@@ -74,16 +92,18 @@ CREATE TABLE auth.jwt_metadata (
 
 **Fields:**
 - `jwt_uuid`: Unique token identifier
+- `created_at`: Database record creation timestamp (immutable)
 - `claim_keys`: Serialized token claims
 - `issued_at`: Token creation timestamp
 - `expires_at`: Token expiration timestamp
 
 ### Table: denylist
-Revoked TARA tokens tracking.
+Revoked OAuth2 tokens tracking.
 
 ```sql
 CREATE TABLE auth.denylist (
   jwt_uuid uuid PRIMARY KEY,
+  created_at timestamp NOT NULL DEFAULT now(),
   denylisted_at timestamp NOT NULL DEFAULT now(),
   expires_at timestamp NOT NULL,
   reason text
@@ -91,7 +111,14 @@ CREATE TABLE auth.denylist (
 ```
 
 **Indexes:**
-- `idx_tara_denylist_exp` on `expires_at` - Cleanup expired entries
+- `idx_auth_denylist_exp` on `expires_at` - Cleanup expired entries
+
+**Fields:**
+- `jwt_uuid`: References `jwt_metadata.jwt_uuid`
+- `created_at`: Database record creation timestamp (immutable)
+- `denylisted_at`: Revocation timestamp
+- `expires_at`: Original token expiration (for cleanup)
+- `reason`: Optional revocation reason
 
 ### Table: oauth_state
 OAuth2 state management for PKCE flows.
@@ -112,9 +139,9 @@ CREATE TABLE auth.oauth_state (
 ## Data Flow
 
 ### Custom JWT Lifecycle
-1. **Generation**: Insert into `custom_jwt.jwt_metadata`
-2. **Usage**: Validate against `custom_jwt.denylist`
-3. **Extension**: Update `expires_at` in `custom_jwt.jwt_metadata`
+1. **Generation**: Insert into `custom_jwt.jwt_metadata` (original_jwt_uuid = jwt_uuid)
+2. **Usage**: Find current version, validate against `custom_jwt.denylist`
+3. **Extension**: Insert new version with supersedes reference, revoke old token
 4. **Revocation**: Insert into `custom_jwt.denylist`
 5. **Cleanup**: Remove expired entries from both tables
 
@@ -143,18 +170,33 @@ DELETE FROM auth.oauth_state WHERE created_at < now() - interval '1 hour';
 
 ### Query Patterns
 ```sql
--- Find user's active tokens
+-- Find current version of a JWT
 SELECT * FROM custom_jwt.jwt_metadata
+WHERE jwt_uuid = ?
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- Find user's active tokens (latest version of each)
+SELECT DISTINCT ON (jwt_uuid) * FROM custom_jwt.jwt_metadata
 WHERE subject = ?
   AND jwt_uuid NOT IN (SELECT jwt_uuid FROM custom_jwt.denylist)
   AND expires_at > now()
-ORDER BY issued_at DESC;
+ORDER BY jwt_uuid, created_at DESC;
+
+-- Find extension chain for a JWT
+SELECT * FROM custom_jwt.jwt_metadata
+WHERE original_jwt_uuid = ?
+ORDER BY created_at ASC;
 
 -- Validate token
-SELECT 1 FROM custom_jwt.jwt_metadata m
+SELECT 1 FROM (
+  SELECT * FROM custom_jwt.jwt_metadata
+  WHERE jwt_uuid = ?
+  ORDER BY created_at DESC
+  LIMIT 1
+) m
 LEFT JOIN custom_jwt.denylist d ON m.jwt_uuid = d.jwt_uuid
-WHERE m.jwt_uuid = ?
-  AND m.expires_at > now()
+WHERE m.expires_at > now()
   AND d.jwt_uuid IS NULL;
 ```
 

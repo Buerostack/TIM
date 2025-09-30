@@ -643,7 +643,14 @@ paths:
       tags:
         - Custom JWT Management
       summary: Extend JWT token expiration
-      description: Create a new JWT token with extended expiration based on an existing valid token
+      description: |
+        Create a new JWT token with extended expiration based on an existing valid token.
+
+        **Extension Chain Tracking**: TIM 2.0 maintains a complete audit trail of token extensions:
+        - Each extension creates a new JWT with a new UUID
+        - The original token is automatically revoked
+        - Extension chain history is preserved for audit purposes
+        - All extensions reference the original JWT for traceability
       requestBody:
         required: true
         content:
@@ -693,6 +700,99 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Invalid request or extension failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /jwt/custom/extension-chain/{originalJwtUuid}:
+    get:
+      tags:
+        - Custom JWT Management
+      summary: Get JWT extension chain history
+      description: |
+        Retrieve the complete extension chain history for a JWT token.
+
+        **Extension Chain Details**:
+        - Returns all versions of a JWT from original to current
+        - Shows the chronological order of extensions
+        - Includes creation timestamps and supersession relationships
+        - Useful for audit trails and debugging
+      parameters:
+        - name: originalJwtUuid
+          in: path
+          required: true
+          description: UUID of the original JWT in the extension chain
+          schema:
+            type: string
+            format: uuid
+          example: "12345678-1234-1234-1234-123456789012"
+      responses:
+        '200':
+          description: Extension chain retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  original_jwt_uuid:
+                    type: string
+                    description: UUID of the first JWT in the chain
+                    example: "12345678-1234-1234-1234-123456789012"
+                  chain_length:
+                    type: integer
+                    description: Total number of JWTs in the chain
+                    example: 3
+                  versions:
+                    type: array
+                    description: All versions in chronological order
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Internal metadata ID
+                          example: "meta-id-123"
+                        jwt_uuid:
+                          type: string
+                          description: JWT UUID for this version
+                          example: "12345678-1234-1234-1234-123456789012"
+                        created_at:
+                          type: string
+                          format: date-time
+                          description: When this version was created
+                          example: "2024-01-15T10:30:00Z"
+                        issued_at:
+                          type: string
+                          format: date-time
+                          description: JWT issued at time
+                          example: "2024-01-15T10:30:00Z"
+                        expires_at:
+                          type: string
+                          format: date-time
+                          description: JWT expiration time
+                          example: "2024-01-15T11:30:00Z"
+                        supersedes:
+                          type: string
+                          nullable: true
+                          description: Previous version ID (null for original)
+                          example: "meta-id-122"
+                        is_current:
+                          type: boolean
+                          description: Whether this is the latest version
+                          example: false
+                        extension_number:
+                          type: integer
+                          description: Extension number (0 = original, 1 = first extension, etc.)
+                          example: 0
+        '404':
+          description: Original JWT UUID not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid UUID format
           content:
             application/json:
               schema:
@@ -982,6 +1082,26 @@ paths:
                     type: string
                     description: JWT ID
                     example: "uuid-here"
+                  jwt_name:
+                    type: string
+                    description: Human-readable token name
+                    example: "USER_TOKEN"
+                  original_jwt_uuid:
+                    type: string
+                    description: UUID of the first JWT in the extension chain
+                    example: "12345678-1234-1234-1234-123456789012"
+                  extension_count:
+                    type: integer
+                    description: Number of times this JWT has been extended from the original
+                    example: 2
+                  supersedes:
+                    type: string
+                    description: ID of the previous JWT version this token supersedes
+                    example: "87654321-4321-4321-4321-210987654321"
+                  created_at:
+                    type: integer
+                    description: Database record creation timestamp (Unix epoch)
+                    example: 1640905200
                   extra_claims:
                     type: object
                     description: Additional custom claims
