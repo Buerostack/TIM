@@ -5,7 +5,7 @@ title: TIM 2.0 - Token Identity Manager
 
 # TIM 2.0 - Token Identity Manager
 
-A lightweight, high-performance JWT management system with built-in extension chains and RFC 7662 Token Introspection support.
+A JWT management system with built-in extension chains and RFC 7662 Token Introspection support.
 
 ## Overview
 
@@ -95,11 +95,11 @@ graph LR
 - INSERT-only database design prevents tampering
 - Complete chronological history available for compliance
 
-### Performance Optimized
-- Lightweight Spring Boot application
-- Optimized PostgreSQL queries with proper indexing
-- Sub-millisecond token validation
-- Minimal memory footprint
+### Optimized Architecture
+- Spring Boot application
+- PostgreSQL queries with proper indexing
+- Efficient token validation
+- Containerized deployment
 
 ## KeyCloak Alternative
 
@@ -107,12 +107,11 @@ TIM 2.0 can replace KeyCloak in scenarios requiring:
 
 | Feature | KeyCloak | TIM 2.0 |
 |---------|----------|---------|
-| Setup Complexity | High (Multiple services, complex config) | Low (Single container) |
-| JWT Management | Basic | Advanced (Extension chains) |
-| Audit Trails | Limited | Complete immutable history |
-| Resource Usage | Heavy | Lightweight |
-| Deployment | Complex | Docker-first |
-| Token Introspection | RFC 7662 compliant | RFC 7662 compliant |
+| Setup Complexity | Multiple services, complex config | Single container |
+| JWT Management | Standard JWT features | Extension chains with audit trails |
+| Audit Trails | Basic logging | Complete immutable history |
+| Deployment | Multi-component setup | Docker-first, single container |
+| Token Introspection | RFC 7662 compliant | RFC 7662 compliant + extension metadata |
 
 ## Live Demo
 

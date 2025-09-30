@@ -1,197 +1,110 @@
-# TIM 2.0 - Token Identity Manager
-*Advanced JWT & OAuth2 Integration Platform*
+# TIM 2.0 Documentation Site
 
-## Overview
-TIM 2.0 (Token Identity Manager) is a comprehensive authentication and token management service that provides OAuth2/OIDC authentication flows and custom JWT token management capabilities.
+This directory contains the GitHub Pages documentation for TIM 2.0.
 
-**Evolution Note**: TIM 2.0 represents a complete architectural rewrite, evolving from the original TARA Integration Module to become a universal, provider-agnostic JWT and OAuth2 platform.
+## Setup for GitHub Pages
 
-## Quick Start
-1. **Start the service**: `docker-compose up -d`
-2. **Access Swagger UI**: http://localhost:8085
-3. **Generate a test token**: Use `/jwt/custom/generate` endpoint
-4. **Test endpoints**: Use the generated Bearer token for authentication
+### Option 1: Project Pages (Recommended)
+This setup allows the documentation to be accessible at `https://buerostack.github.io/TIM/`
 
-*TIM 2.0 maintains full backward compatibility while introducing enhanced JWT management and provider-agnostic OAuth2 capabilities.*
+1. **Repository Settings:**
+   - Go to repository Settings → Pages
+   - Source: Deploy from a branch
+   - Branch: Select `main` or `wip/tim_2.0`
+   - Folder: `/docs`
 
-## Documentation Structure
+2. **Multi-Repository Support:**
+   - Each repository in the buerostack organization can have its own `/docs` folder
+   - They will automatically be available at `https://buerostack.github.io/REPOSITORY_NAME/`
+   - No conflicts between different project documentation
 
-### 📚 API Documentation
-- **[OpenAPI Specification](api/openapi.yaml)** - Complete API specification with examples
-- **[Interactive Swagger UI](http://localhost:8085)** - Test endpoints with live documentation
+### Option 2: Organization Pages (Alternative)
+For a centralized documentation site at `https://buerostack.github.io/`
 
-### 🔗 Endpoint Guides
-- **[OAuth2/OIDC Authentication](endpoints/oauth2-authentication.md)** - Provider discovery, login flows, session validation
-- **[Custom JWT Management](endpoints/custom-jwt-management.md)** - Generate, list, extend, revoke, and validate JWT tokens
-- **[Public Keys](endpoints/public-keys.md)** - JWT signature verification keys (JWKS format)
+1. Create a repository named `buerostack.github.io`
+2. Move documentation files to the root of that repository
+3. All projects would be subdirectories under the main site
 
-### 🗄️ Database
-- **[Database Schema](database/schema.md)** - Complete schema documentation with indexes and relationships
-
-
-## Core Features
-
-### 🔐 Authentication Methods
-- **OAuth2/OIDC Providers**: Google, GitHub, and custom providers
-- **Custom JWT Tokens**: Self-managed tokens with configurable claims
-- **Session Management**: Secure cookie-based sessions
-
-### 🎫 JWT Token Management
-- **Generation**: Create tokens with custom claims and expiration
-- **Listing**: View all tokens owned by authenticated user
-- **Extension**: Extend token expiration times
-- **Revocation**: Securely invalidate tokens with audit trail
-- **Validation**: Verify token signature and status
-
-### 🔒 Security Features
-- **RSA256 Signatures**: Industry-standard JWT signing
-- **Bearer Token Authentication**: Secure API access
-- **Token Revocation**: Immediate invalidation capability
-- **PKCE Support**: Enhanced OAuth2 security
-- **CSRF Protection**: State parameter validation
-
-## Architecture
-
-### Service Components
-```
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   OAuth2/OIDC   │  │   Custom JWT    │  │   Public Keys   │
-│  Authentication │  │   Management    │  │   (JWKS)        │
-├─────────────────┤  ├─────────────────┤  ├─────────────────┤
-│ • Provider      │  │ • Generate      │  │ • Signature     │
-│   Discovery     │  │ • List/Filter   │  │   Verification  │
-│ • Login Flows   │  │ • Extend        │  │ • Key Rotation  │
-│ • Session Mgmt  │  │ • Revoke        │  │ • JWKS Format   │
-│ • Validation    │  │ • Validate      │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-```
-
-### Database Schemas
-- **custom**: JWT metadata, revocation lists
-- **tara**: OAuth2 tokens, state management
-
-## Development
+## Local Development
 
 ### Prerequisites
-- Docker & Docker Compose
-- Java 17+ (for local development)
-- PostgreSQL (containerized)
+- Ruby 2.7+
+- Bundler gem
 
-### Local Setup
+### Setup
 ```bash
-# Clone and start services
-git clone <repository>
-cd TIM
-docker-compose up -d
+# Install dependencies
+cd docs
+bundle install
 
-# Access services
-curl http://localhost:8085/auth/health
-open http://localhost:8085  # Swagger UI
+# Serve locally
+bundle exec jekyll serve
+
+# View at http://localhost:4000/TIM/
 ```
 
-### Testing Workflows
+### Content Guidelines
 
-#### 1. OAuth2 Authentication
-```bash
-# 1. Check available providers
-curl http://localhost:8085/auth/providers
+#### Supported Claims Only
+- ✅ Feature descriptions based on actual implementation
+- ✅ Architecture explanations with code references
+- ✅ Deployment instructions that have been tested
+- ❌ Performance metrics without benchmarks
+- ❌ Comparison claims without evidence
+- ❌ Marketing language without technical backing
 
-# 2. Start login (browser redirect)
-open http://localhost:8085/auth/login/google
+#### Mermaid Diagrams
+- All architecture diagrams are rendered automatically
+- Use proper Mermaid syntax in code blocks
+- Test diagrams locally before committing
 
-# 3. Validate session after callback
-curl -b cookies.txt http://localhost:8085/auth/validate
+#### Navigation
+- Main navigation is configured in `_config.yml`
+- Each major section should have an `index.md` file
+- Use relative links between documentation pages
+
+## File Structure
+
+```
+docs/
+├── _config.yml           # Jekyll configuration
+├── _layouts/
+│   └── default.html      # Custom layout with Mermaid support
+├── index.md              # Landing page
+├── api/
+│   └── index.md          # API documentation
+├── architecture/
+│   └── index.md          # Technical architecture
+├── demo/
+│   └── index.md          # Interactive demos
+├── deployment/
+│   └── index.md          # Deployment guides
+├── migration/
+│   └── index.md          # KeyCloak migration guide
+└── security/
+    └── index.md          # Security features
 ```
 
-#### 2. Custom JWT Management
-```bash
-# 1. Generate token
-curl -X POST http://localhost:8085/jwt/custom/generate \
-  -H "Content-Type: application/json" \
-  -d '{"JWTName":"test-token","content":{"sub":"user123"},"expirationInMinutes":60}'
+## Publishing Checklist
 
-# 2. List tokens (requires Bearer auth)
-curl -X POST http://localhost:8085/jwt/custom/list/me \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json"
+Before enabling GitHub Pages:
 
-# 3. Validate token
-curl -X POST http://localhost:8085/jwt/custom/validate \
-  -H "Content-Type: application/json" \
-  -d '{"token":"<jwt-token>"}'
-```
+- [ ] Remove all unsupported performance claims
+- [ ] Verify all links work with the `/TIM/` base path
+- [ ] Test Mermaid diagrams render correctly
+- [ ] Ensure demo examples use correct localhost URLs
+- [ ] Check that all markdown files have proper front matter
+- [ ] Validate Jekyll configuration
 
-## Configuration
+## Maintenance
 
-### Environment Variables
-- `KEY_PASS`: Private key password (default: "changeme")
-- `DATABASE_URL`: PostgreSQL connection string
-- `OAUTH2_PROVIDERS`: JSON configuration for OAuth2 providers
+### Regular Updates
+- Update API examples when endpoints change
+- Refresh deployment instructions for new versions
+- Keep migration guide current with KeyCloak changes
+- Update security documentation for new features
 
-### Security Configuration
-- All `/jwt/**` endpoints: Public access
-- All `/auth/**` endpoints: Public access (session-based)
-- Static resources: Public access
-- CSRF disabled for API endpoints
-
-## Monitoring & Maintenance
-
-### Health Checks
-- **OAuth2 Service**: `GET /auth/health`
-- **Database**: Connection validated on startup
-- **JWT Keys**: Automatically generated if missing
-
-### Database Maintenance
-```sql
--- Clean expired revoked tokens
-DELETE FROM custom.denylist WHERE expires_at < now();
-DELETE FROM tara.denylist WHERE expires_at < now();
-
--- Clean expired OAuth2 states
-DELETE FROM tara.oauth_state WHERE created_at < now() - interval '1 hour';
-```
-
-### Performance Tuning
-- Database indexes on frequently queried fields
-- JWT validation caching recommendations
-- Key rotation procedures
-
-## Integration Examples
-
-### Frontend Integration
-```javascript
-// Generate and use JWT token
-const response = await fetch('/jwt/custom/generate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    JWTName: 'frontend-token',
-    content: { sub: 'user123', role: 'user' },
-    expirationInMinutes: 60
-  })
-});
-const { token } = await response.json();
-
-// Use token for authenticated requests
-const apiResponse = await fetch('/jwt/custom/list/me', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-});
-```
-
-### External Service Integration
-```java
-// Validate TIM tokens in external service
-JwkProvider provider = new UrlJwkProvider("http://tim:8085/jwt/keys/public");
-DecodedJWT jwt = JWT.decode(token);
-RSAPublicKey publicKey = (RSAPublicKey) provider.get("jwtsign").getPublicKey();
-Algorithm.RSA256(publicKey, null).verify(jwt);
-```
-
-## Support
-- **Documentation**: Complete API specification in OpenAPI format
-- **Interactive Testing**: Swagger UI with authentication examples
-- **Database Schema**: Detailed schema documentation with examples
+### Content Verification
+- All technical claims should be verifiable in the codebase
+- Performance comparisons should be based on actual measurements
+- Migration examples should be tested with real deployments

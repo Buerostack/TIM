@@ -169,19 +169,19 @@ architecture-beta
 
 ## Performance Characteristics
 
-### Query Performance
-| Operation | Typical Time | Index Used |
-|-----------|-------------|------------|
-| Find current JWT version | < 1ms | `idx_jwt_uuid_created` |
-| Extension chain lookup | < 5ms | `idx_original_jwt_uuid` |
-| Token introspection | < 3ms | `idx_jwt_uuid_created` |
-| User token list | < 3ms | `idx_subject` |
+### Query Optimization
+| Operation | Index Used | Notes |
+|-----------|------------|-------|
+| Find current JWT version | `idx_jwt_uuid_created` | Finds latest version by timestamp |
+| Extension chain lookup | `idx_original_jwt_uuid` | Retrieves complete chain history |
+| Token introspection | `idx_jwt_uuid_created` | Fast metadata lookup |
+| User token list | `idx_subject` | Subject-based token queries |
 
 ### Scalability
 - **Horizontal Scaling** - Stateless application design
 - **Database Optimization** - Efficient queries with proper indexing
 - **Caching Strategy** - Redis for frequently accessed data
-- **Resource Efficiency** - Minimal memory and CPU footprint
+- **Container Architecture** - Docker-first deployment approach
 
 ## Comparison with KeyCloak
 
@@ -192,7 +192,7 @@ architecture-beta
 | **JWT Management** | Basic generation/validation | Advanced extension chains |
 | **Audit Trails** | Limited logging | Complete immutable history |
 | **Database Design** | Traditional CRUD | INSERT-only, audit-focused |
-| **Performance** | Resource-heavy | Lightweight, optimized |
+| **Resource Model** | Multi-service architecture | Single container architecture |
 | **Customization** | Theme/plugin system | API-first, developer-friendly |
 | **Token Introspection** | RFC 7662 compliant | RFC 7662 + extension metadata |
 

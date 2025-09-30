@@ -50,7 +50,7 @@ TIM 2.0 offers significant advantages over KeyCloak for JWT-focused use cases:
 | **User Management** | ✅ Full Admin UI | ⚠️ API-based | Requires UI development |
 | **Social Login** | ✅ Extensive | ❌ Not supported | External solution needed |
 | **LDAP Integration** | ✅ Full Support | ❌ Not supported | Custom integration required |
-| **Resource Usage** | ❌ Heavy | ✅ Lightweight | 10x reduction typical |
+| **Resource Usage** | Higher memory/CPU requirements | Lower resource requirements |
 | **Setup Complexity** | ❌ High | ✅ Minimal | Hours vs minutes |
 
 ## Step-by-Step Migration

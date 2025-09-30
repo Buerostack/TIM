@@ -298,25 +298,25 @@ graph LR
     style D fill:#ccffcc
 ```
 
-## Performance Comparison
+## Architecture Benefits
 
-### TIM 2.0 vs KeyCloak Response Times
+### TIM 2.0 Design Focus
 
-| Operation | TIM 2.0 | KeyCloak | Improvement |
-|-----------|---------|----------|-------------|
-| JWT Generation | ~5ms | ~50ms | 10x faster |
-| Token Introspection | ~2ms | ~30ms | 15x faster |
-| Token Validation | ~1ms | ~20ms | 20x faster |
-| Extension Chain Query | ~3ms | N/A | New capability |
+| Aspect | TIM 2.0 Approach | Benefits |
+|--------|------------------|----------|
+| **Single Container** | All components in one container | Simplified deployment and management |
+| **Extension Chains** | Built-in audit trail system | Complete token lifecycle tracking |
+| **INSERT-Only DB** | No UPDATE operations | Immutable audit history |
+| **RFC 7662 Enhanced** | Standard + extension metadata | Comprehensive token introspection |
 
-### Resource Usage
+### Deployment Characteristics
 
-| Metric | TIM 2.0 | KeyCloak | Difference |
-|--------|---------|----------|------------|
-| Memory Usage | ~200MB | ~1.5GB | 87% less |
-| Container Size | ~150MB | ~800MB | 81% less |
-| Startup Time | ~10s | ~60s | 83% faster |
-| CPU Usage (idle) | ~5% | ~15% | 66% less |
+| Metric | TIM 2.0 | KeyCloak |
+|--------|---------|----------|
+| **Container Count** | 1 (+ database) | Multiple services |
+| **Configuration Files** | Minimal | Complex realm/client setup |
+| **Dependencies** | PostgreSQL only | Multiple databases, caches |
+| **Startup Process** | Single container start | Service orchestration required |
 
 ## Demo Scripts
 

@@ -1,5 +1,5 @@
 title: TIM 2.0 - Token Identity Manager
-description: A lightweight, high-performance JWT management system with extension chains and RFC 7662 support
+description: A JWT management system with extension chains and RFC 7662 support
 baseurl: "/TIM"
 url: "https://buerostack.github.io"
 
@@ -17,6 +17,17 @@ header_pages:
   - migration/index.md
   - deployment/index.md
   - demo/index.md
+
+# GitHub repository settings (for multi-repo organization)
+github:
+  repository_nwo: "buerostack/TIM"
+  repository_name: "TIM"
+  owner_name: "buerostack"
+  owner_url: "https://github.com/buerostack"
+  repository_url: "https://github.com/buerostack/TIM"
+  zip_url: "https://github.com/buerostack/TIM/zipball/main"
+  tar_url: "https://github.com/buerostack/TIM/tarball/main"
+  is_project_page: true
 
 # Markdown settings
 markdown: kramdown
