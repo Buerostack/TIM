@@ -1,7 +1,7 @@
 # OAuth2/OIDC Authentication Endpoints
 
 ## Overview
-TIM provides OAuth2/OIDC authentication through multiple endpoints that handle provider discovery, login flows, token validation, and session management.
+TIM 2.0 provides OAuth2/OIDC authentication through multiple endpoints that handle provider discovery, login flows, token validation, and session management.
 
 ## Base URL
 - Local Development: `http://localhost:8085`

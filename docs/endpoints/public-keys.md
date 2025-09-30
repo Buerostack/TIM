@@ -1,7 +1,7 @@
 # Public Key Endpoints
 
 ## Overview
-TIM provides public key endpoints for JWT signature verification and cryptographic operations. These endpoints are typically used by external services to validate JWT tokens issued by TIM.
+TIM 2.0 provides public key endpoints for JWT signature verification and cryptographic operations. These endpoints are typically used by external services to validate JWT tokens issued by TIM 2.0.
 
 ## Base URL
 - Local Development: `http://localhost:8085`

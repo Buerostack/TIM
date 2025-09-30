@@ -1,7 +1,7 @@
 # Custom JWT Management Endpoints
 
 ## Overview
-TIM provides comprehensive JWT token management including generation, listing, extension, revocation, and validation. All endpoints support Bearer token authentication.
+TIM 2.0 provides comprehensive JWT token management including generation, listing, extension, revocation, and validation. All endpoints support Bearer token authentication.
 
 ## Base URL
 - Local Development: `http://localhost:8085`

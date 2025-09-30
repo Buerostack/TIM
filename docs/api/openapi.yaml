@@ -1,21 +1,28 @@
 openapi: 3.0.3
 info:
-  title: TIM (Token Identity Manager) API
+  title: TIM 2.0 (Token Identity Manager) API
   description: |
-    TIM is a comprehensive token and identity management system providing:
-    - OAuth2/OIDC authentication with multiple providers (Google, TARA Estonia)
-    - Custom JWT generation, validation, and management
-    - Session management and user profile services
+    TIM 2.0 - Advanced JWT & OAuth2 Integration Platform
+
+    **Evolution Note:** TIM 2.0 represents a complete architectural rewrite, evolving from the original
+    TARA Integration Module to become a universal, provider-agnostic JWT and OAuth2 platform.
+
+    ## Core Features
+    - OAuth2/OIDC authentication with multiple providers (Google, GitHub, custom providers)
+    - Advanced custom JWT generation, validation, and management
+    - Comprehensive token lifecycle management (generation, extension, revocation)
+    - Enterprise-grade security and scalability
 
     ## Authentication
     - OAuth2/OIDC endpoints support standard OAuth2 flows
     - Custom JWT endpoints use bearer token authentication for protected operations
     - Session-based authentication for user profile access
 
-    ## Providers
-    - **google**: Google OAuth2 provider
-    - **tara**: TARA Estonia (national eID) provider
-  version: 0.2.0
+    ## Provider Support
+    - **Universal Provider Support**: Configurable OAuth2/OIDC providers
+    - **Legacy Support**: Maintains compatibility with TARA Estonia
+    - **Enterprise Ready**: Support for custom identity providers
+  version: 2.0.0
   contact:
     name: TIM API Support
     url: https://github.com/your-org/tim

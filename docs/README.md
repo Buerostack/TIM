@@ -1,13 +1,18 @@
-# TIM - Token Identity Manager
+# TIM 2.0 - Token Identity Manager
+*Advanced JWT & OAuth2 Integration Platform*
 
 ## Overview
-TIM (Token Identity Manager) is a comprehensive authentication and token management service that provides OAuth2/OIDC authentication flows and custom JWT token management capabilities.
+TIM 2.0 (Token Identity Manager) is a comprehensive authentication and token management service that provides OAuth2/OIDC authentication flows and custom JWT token management capabilities.
+
+**Evolution Note**: TIM 2.0 represents a complete architectural rewrite, evolving from the original TARA Integration Module to become a universal, provider-agnostic JWT and OAuth2 platform.
 
 ## Quick Start
 1. **Start the service**: `docker-compose up -d`
 2. **Access Swagger UI**: http://localhost:8085
 3. **Generate a test token**: Use `/jwt/custom/generate` endpoint
 4. **Test endpoints**: Use the generated Bearer token for authentication
+
+*TIM 2.0 maintains full backward compatibility while introducing enhanced JWT management and provider-agnostic OAuth2 capabilities.*
 
 ## Documentation Structure
 

@@ -1,7 +1,7 @@
-# TIM Database Schema
+# TIM 2.0 Database Schema
 
 ## Overview
-TIM uses PostgreSQL with two main schemas:
+TIM 2.0 uses PostgreSQL with two main schemas:
 - **custom**: Custom JWT token management
 - **tara**: TARA/OAuth2 authentication support
 
