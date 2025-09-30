@@ -20,7 +20,11 @@ import buerostack.jwt.api.JwtTokenSummary;
  private final JwtSignerService signer; private final CustomDenylistRepo denylistRepo; private final CustomJwtMetadataRepo metaRepo;
  public CustomJwtService(JwtSignerService s, CustomDenylistRepo d, CustomJwtMetadataRepo m){ this.signer=s; this.denylistRepo=d; this.metaRepo=m; }
  public String generate(String jwtName, Map<String,Object> claims, String issuer, List<String> audiences, long ttl) throws Exception {
-   String token = signer.sign(claims, issuer, audiences, ttl);
+   // Add token_type claim for introspection
+   Map<String,Object> claimsWithType = new HashMap<>(claims);
+   claimsWithType.put("token_type", "custom_jwt");
+
+   String token = signer.sign(claimsWithType, issuer, audiences, ttl);
    var jwt = SignedJWT.parse(token); var jti = java.util.UUID.fromString(jwt.getJWTClaimsSet().getJWTID());
    var meta = new CustomJwtMetadata(); meta.setJwtUuid(jti); meta.setIssuedAt(jwt.getJWTClaimsSet().getIssueTime().toInstant());
    meta.setExpiresAt(jwt.getJWTClaimsSet().getExpirationTime().toInstant()); meta.setClaimKeys(String.join(",", claims.keySet())); meta.setSubject(jwt.getJWTClaimsSet().getSubject()); meta.setJwtName(jwtName);

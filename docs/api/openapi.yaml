@@ -43,6 +43,8 @@ tags:
     description: Public key endpoints for JWT verification
   - name: Session Management
     description: Session validation and user profile management
+  - name: Token Introspection
+    description: RFC 7662 compliant token introspection for multi-service validation
 
 paths:
   # OAuth2/OIDC Endpoints
@@ -873,6 +875,143 @@ paths:
                               type: string
                               description: RSA exponent
                               example: AQAB
+
+  # Token Introspection Endpoints
+  /introspect:
+    post:
+      tags:
+        - Token Introspection
+      summary: RFC 7662 Token Introspection
+      description: |
+        Introspect a token to determine its active state and metadata.
+
+        **Standards Compliance:** RFC 7662 - OAuth 2.0 Token Introspection
+
+        **Supported Token Types:**
+        - Custom JWT tokens (token_type: "custom_jwt")
+        - OAuth2 access tokens (token_type: "oauth2_access")
+
+        **Usage:**
+        - Microservices use this endpoint to validate tokens
+        - Returns active/inactive status plus token metadata
+        - Checks signature, expiration, and revocation status
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: The token to introspect
+                  example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type_hint:
+                  type: string
+                  description: Optional hint about the token type
+                  example: "custom_jwt"
+              required:
+                - token
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: The token to introspect
+                  example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type_hint:
+                  type: string
+                  description: Optional hint about the token type
+                  example: "custom_jwt"
+              required:
+                - token
+      responses:
+        '200':
+          description: Token introspection response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active:
+                    type: boolean
+                    description: Whether the token is active
+                    example: true
+                  scope:
+                    type: string
+                    description: Token scope (if applicable)
+                    example: "read write"
+                  client_id:
+                    type: string
+                    description: Client identifier
+                    example: "service-client"
+                  username:
+                    type: string
+                    description: Username associated with the token
+                    example: "user123"
+                  token_type:
+                    type: string
+                    description: Type of the token
+                    example: "custom_jwt"
+                  exp:
+                    type: integer
+                    description: Expiration timestamp (Unix epoch)
+                    example: 1640995200
+                  iat:
+                    type: integer
+                    description: Issued at timestamp (Unix epoch)
+                    example: 1640908800
+                  sub:
+                    type: string
+                    description: Subject identifier
+                    example: "user123"
+                  aud:
+                    oneOf:
+                      - type: string
+                      - type: array
+                        items:
+                          type: string
+                    description: Audience (string or array)
+                    example: "tim-audience"
+                  iss:
+                    type: string
+                    description: Issuer
+                    example: "TIM"
+                  jti:
+                    type: string
+                    description: JWT ID
+                    example: "uuid-here"
+                  extra_claims:
+                    type: object
+                    description: Additional custom claims
+                    additionalProperties: true
+                    example:
+                      role: "admin"
+                      permissions: ["read", "write"]
+
+  /introspect/types:
+    get:
+      tags:
+        - Token Introspection
+      summary: Get supported token types
+      description: |
+        Get information about supported token types for introspection.
+
+        **Informational endpoint** for understanding what token types
+        TIM 2.0 can validate via the introspection endpoint.
+      responses:
+        '200':
+          description: Supported token types
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                example:
+                  custom_jwt: "CustomJwtTokenValidator"
+                  oauth2_access: "OAuth2TokenValidator"
 
 components:
   securitySchemes:
