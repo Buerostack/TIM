@@ -1,0 +1,45 @@
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Java and Maven
+target/
+*.jar
+*.war
+*.ear
+*.class
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Docker
+.env
+
+# Local documentation and TODO files (keep private)
+TIM_DOCUMENTATION_SITE_TODOS.md
+*_TODOS.md
+*_TODO.md
+*.local.md
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Application specific
+application-local.properties
+application-dev.properties
