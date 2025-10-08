@@ -1,0 +1,8 @@
+.git
+**/target/
+*.jks
+*.p12
+*.pem
+*.key
+*.crt
+.DS_Store

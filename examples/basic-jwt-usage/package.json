@@ -1,0 +1,35 @@
+{
+  "name": "tim-basic-jwt-usage-example",
+  "version": "1.0.0",
+  "description": "Basic JWT usage example for TIM 2.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "generate": "node operations/generate.js",
+    "validate": "node operations/validate.js",
+    "list": "node operations/list.js",
+    "extend": "node operations/extend.js",
+    "revoke": "node operations/revoke.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "jwt",
+    "authentication",
+    "tim",
+    "oauth2",
+    "token-management"
+  ],
+  "author": "TIM 2.0 Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

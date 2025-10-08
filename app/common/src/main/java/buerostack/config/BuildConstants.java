@@ -1,0 +1,1 @@
+package buerostack.config; public final class BuildConstants { private BuildConstants(){} }

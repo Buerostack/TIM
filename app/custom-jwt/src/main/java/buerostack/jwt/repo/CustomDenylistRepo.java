@@ -1,0 +1,2 @@
+package buerostack.jwt.repo; import buerostack.jwt.entity.CustomDenylist; import org.springframework.data.jpa.repository.JpaRepository; import java.util.UUID;
+public interface CustomDenylistRepo extends JpaRepository<CustomDenylist, UUID> {}

@@ -1,0 +1,3 @@
+package buerostack.jwt.api; import buerostack.config.JwtSignerService; import org.springframework.http.ResponseEntity; import org.springframework.web.bind.annotation.*; import java.util.Map;
+@RestController public class PublicKeyController { private final JwtSignerService signer; public PublicKeyController(JwtSignerService s){this.signer=s;}
+ @GetMapping("/jwt/keys/public") public ResponseEntity<?> jwk(){ return ResponseEntity.ok(Map.of("jwk", signer.publicJwkSet())); } }

@@ -1,0 +1,74 @@
+title: TIM 2.0 - Token Identity Manager
+description: A JWT management system with extension chains and RFC 7662 support
+baseurl: "/TIM"
+url: "https://buerostack.github.io"
+
+# GitHub Pages settings
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Navigation
+header_pages:
+  - architecture/index.md
+  - api/index.md
+  - migration/index.md
+  - deployment/index.md
+  - demo/index.md
+
+# GitHub repository settings (for multi-repo organization)
+github:
+  repository_nwo: "buerostack/TIM"
+  repository_name: "TIM"
+  owner_name: "buerostack"
+  owner_url: "https://github.com/buerostack"
+  repository_url: "https://github.com/buerostack/TIM"
+  zip_url: "https://github.com/buerostack/TIM/zipball/main"
+  tar_url: "https://github.com/buerostack/TIM/tarball/main"
+  is_project_page: true
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Mermaid support
+mermaid:
+  enabled: true
+
+# Collections
+collections:
+  guides:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+
+# Social links
+github_username: buerostack
+repository: buerostack/TIM
+
+# SEO
+author: Bürostack
+twitter:
+  username: buerostack
+  card: summary
+
+social:
+  name: Bürostack
+  links:
+    - https://github.com/buerostack
