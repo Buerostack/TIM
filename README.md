@@ -10,81 +10,28 @@ TIM 2.0 (Token Identity Manager) is an advanced JWT and OAuth2 integration platf
 **Background**: TIM 2.0 evolved from the original TARA Integration Module (TIM) initially developed by the Information System Authority of Estonia (RIA). This repository represents a complete architectural rewrite, transforming TIM into a universal platform while maintaining backward compatibility with the original TARA-focused functionality.
 **Status**: Active Development
 
-## Origin
-
-TIM 2.0 evolved from the original TARA Integration Module (TIM) that was initially developed by the Information System Authority of Estonia (RIA) under the leadership of [Rainer Türner](https://www.linkedin.com/in/rainer-t%C3%BCrner-058b80b8/). The original TIM was designed specifically for integration with Estonia's national e-authentication service TARA.
-
-This repository represents a complete architectural rewrite, transforming TIM into a universal, provider-agnostic JWT and OAuth2 integration platform while maintaining backward compatibility with the original TARA-focused functionality.
-
-**Original Architect & Current Tech Lead**: [Rainer Türner](https://www.linkedin.com/in/rainer-t%C3%BCrner-058b80b8/)
-**Code Generation**: Assisted by Claude Code (Anthropic)
-
-## Current Repository
-
-TIM 2.0 is maintained as an independent project, expanding beyond its Estonian government origins to serve as a comprehensive token identity management solution for organizations worldwide. The platform maintains its core security principles while adding enterprise-grade features and multi-provider support.
 
 ## Quick Start
 
-### Prerequisites
-- Docker & Docker Compose
-- Java 17+ (for local development)
-
-### Running with Docker
 ```bash
 git clone https://github.com/Buerostack/TIM.git
 cd TIM
 docker-compose up -d
 ```
 
-### Access the API
-- **Swagger UI**: http://localhost:8085
-- **Health Check**: http://localhost:8085/auth/health
-- **Public Keys (JWKS)**: http://localhost:8085/jwt/keys/public
+Access TIM at **http://localhost:8085**
 
-### Generate Your First Token
-```bash
-curl -X POST http://localhost:8085/jwt/custom/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "JWTName": "test-token",
-    "content": {
-      "sub": "user123",
-      "role": "admin"
-    },
-    "expirationInMinutes": 60
-  }'
-```
-
-### Test Authentication
-```bash
-# Use the token from previous step
-curl -X POST http://localhost:8085/jwt/custom/list/me \
-  -H "Authorization: Bearer <your-token>" \
-  -H "Content-Type: application/json"
-```
+For detailed setup instructions, see the [Development Environment Setup Guide](docs/how-to/setup-development-environment.md).
 
 ---
 
 ## Core Features
 
-### 🔐 Authentication Methods
-- **OAuth2/OIDC Providers**: Google, GitHub, TARA Estonia, and custom providers
-- **Custom JWT Tokens**: Self-managed tokens with configurable claims and expiration
-- **Session Management**: Secure cookie-based sessions for web applications
-
-### 🎫 Token Lifecycle Management
-- **Generation**: Create tokens with custom claims, expiration, and metadata
-- **Listing**: View and filter tokens by user, status, and date ranges
-- **Extension**: Extend token expiration for active sessions
-- **Revocation**: Immediate token invalidation with audit trails
-- **Validation**: Real-time signature and status verification
-
-### 🏢 Enterprise Features
-- **Provider Agnostic**: Configure any OAuth2/OIDC compliant identity provider
-- **Multi-tenant Ready**: Isolated token spaces and configurations
-- **Audit Logging**: Comprehensive token lifecycle tracking
-- **High Performance**: Optimized for large-scale deployments
-- **Security First**: RSA256 signatures, PKCE support, CSRF protection
+- **OAuth2/OIDC Authentication**: Multi-provider support (Google, GitHub, TARA, custom)
+- **Custom JWT Management**: Generate, extend, revoke, and validate tokens
+- **Token Lifecycle Tracking**: Complete audit trails with extension chains
+- **Enterprise Security**: RSA256 signatures, PKCE, CSRF protection, token revocation
+- **Developer Friendly**: OpenAPI docs, runnable examples, comprehensive guides
 
 ---
 
@@ -103,11 +50,17 @@ For detailed documentation, see the [docs/](docs/) directory:
 
 ## Basic Usage
 
-See the [examples/](examples/) directory for runnable code examples demonstrating:
-- OAuth2 authentication flows
-- Custom JWT token generation and validation
-- Token lifecycle management
-- Multi-provider integration
+**Generate a Token:**
+```bash
+curl -X POST http://localhost:8085/jwt/custom/generate \
+  -H "Content-Type: application/json" \
+  -d '{"JWTName": "my-token", "content": {"sub": "user123"}, "expirationInMinutes": 60}'
+```
+
+**Detailed Guides:**
+- [Generate Custom JWT Tokens](docs/how-to/generate-custom-jwt.md)
+- [Configure OAuth2 Providers](docs/how-to/configure-oauth2-provider.md)
+- [Runnable Examples](examples/) - Complete integration examples
 
 ---
 

@@ -4,18 +4,12 @@ This example demonstrates the core functionality of TIM 2.0's custom JWT token m
 
 ## What This Example Demonstrates
 
-- Generating custom JWT tokens with claims
-- Validating and decoding JWT tokens
-- Using tokens for authenticated requests
-- Listing and managing tokens
-- Extending token expiration
-- Revoking tokens
+Complete JWT token lifecycle: generation, validation, listing, extension, and revocation.
 
 ## Prerequisites
 
-- TIM 2.0 running on `http://localhost:8085` (see [setup guide](../../docs/how-to/setup-development-environment.md))
-- Node.js 16+ installed
-- npm or yarn package manager
+- **TIM 2.0 running**: See [Development Setup Guide](../../docs/how-to/setup-development-environment.md)
+- **Node.js 16+** and npm
 
 ## Installation
 
@@ -77,81 +71,17 @@ npm run revoke
 
 ## Code Overview
 
-### 1. Generate Token
+This example demonstrates all JWT operations. See [index.js](index.js) for complete implementation.
 
-```javascript
-const response = await axios.post(`${TIM_API_URL}/jwt/custom/generate`, {
-  JWTName: 'example-token',
-  content: {
-    sub: 'user123',
-    role: 'user',
-    email: 'user@example.com'
-  },
-  expirationInMinutes: 60
-});
+**Key operations:**
+1. Generate token with custom claims
+2. Decode and validate token
+3. List user's tokens
+4. Extend token expiration
+5. Make authenticated requests
+6. Revoke token
 
-const { token, expiresAt, tokenId } = response.data;
-```
-
-### 2. Use Token for Authenticated Requests
-
-```javascript
-const response = await axios.post(
-  `${TIM_API_URL}/jwt/custom/list/me`,
-  {},
-  {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  }
-);
-```
-
-### 3. Decode and Validate Token
-
-```javascript
-// Decode token (without verification)
-const decoded = jwt.decode(token, { complete: true });
-
-// Validate token with TIM
-const validationResponse = await axios.post(
-  `${TIM_API_URL}/jwt/validate`,
-  { token }
-);
-```
-
-### 4. Extend Token Expiration
-
-```javascript
-const response = await axios.post(
-  `${TIM_API_URL}/jwt/custom/extend`,
-  {
-    tokenId: tokenId,
-    extensionInMinutes: 30
-  },
-  {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  }
-);
-```
-
-### 5. Revoke Token
-
-```javascript
-const response = await axios.post(
-  `${TIM_API_URL}/jwt/custom/revoke`,
-  {
-    tokenId: tokenId
-  },
-  {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  }
-);
-```
+For detailed JWT generation guide, see [docs/how-to/generate-custom-jwt.md](../../docs/how-to/generate-custom-jwt.md).
 
 ## Expected Output
 
@@ -204,52 +134,13 @@ The example includes comprehensive error handling for common scenarios:
 
 ## Integration Tips
 
-### Web Applications
+**Security Best Practices:**
+- Store tokens in HttpOnly cookies (use `setCookie: true`)
+- Never store tokens in localStorage (XSS vulnerability)
+- Use environment variables for service tokens
+- Implement token refresh/extension for long sessions
 
-Store tokens securely:
-```javascript
-// ❌ DON'T: Store in localStorage (vulnerable to XSS)
-localStorage.setItem('token', token);
-
-// ✅ DO: Use HttpOnly cookies (set by TIM with setCookie: true)
-// Or store in memory only for SPA
-let authToken = null;
-```
-
-### API Services
-
-Use environment variables for service tokens:
-```javascript
-const SERVICE_TOKEN = process.env.TIM_SERVICE_TOKEN;
-
-const response = await axios.get(url, {
-  headers: {
-    'Authorization': `Bearer ${SERVICE_TOKEN}`
-  }
-});
-```
-
-### Token Refresh Pattern
-
-```javascript
-async function makeAuthenticatedRequest(url) {
-  try {
-    return await axios.get(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-  } catch (error) {
-    if (error.response?.status === 401) {
-      // Token expired, extend or generate new
-      await extendToken();
-      // Retry request
-      return await axios.get(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-    }
-    throw error;
-  }
-}
-```
+For complete integration patterns, see [docs/how-to/generate-custom-jwt.md](../../docs/how-to/generate-custom-jwt.md).
 
 ## Testing
 
@@ -263,25 +154,15 @@ This will run integration tests against a live TIM instance.
 
 ## Troubleshooting
 
-### "Connection refused" error
-- Ensure TIM 2.0 is running: `docker-compose ps`
-- Check TIM URL in `.env` matches your setup
+**Common Issues:**
+- **Connection refused**: Ensure TIM is running (`docker-compose ps`)
+- **Unauthorized errors**: Check token expiration and revocation status
+- **Validation fails**: Verify system time synchronization
 
-### "Unauthorized" errors
-- Verify token is not expired
-- Check token is not revoked
-- Ensure token is included in Authorization header
-
-### Token validation fails
-- Check system time synchronization (for exp/iat claims)
-- Verify TIM's public keys are accessible
+See [docs/how-to/setup-development-environment.md](../../docs/how-to/setup-development-environment.md#troubleshooting) for detailed troubleshooting.
 
 ## Next Steps
 
-- **OAuth2 Integration**: See [../oauth2-integration/](../oauth2-integration/)
-- **Token Validation**: See [../token-validation/](../token-validation/)
-- **Production Deployment**: See [docs/how-to/deploy-production.md](../../docs/how-to/deploy-production.md)
-
-## License
-
-MIT License - See [LICENSE](../../LICENSE)
+- [OAuth2 Provider Configuration](../../docs/how-to/configure-oauth2-provider.md)
+- [JWT Generation Guide](../../docs/how-to/generate-custom-jwt.md)
+- [Architecture Documentation](../../docs/architecture/overview.md)

@@ -82,101 +82,27 @@ Previous versions were maintained as the TARA Integration Module (TIM) by the In
 
 ---
 
-## Migration Guide
+## Migration from TIM 1.x
 
-### From TIM 1.x to TIM 2.0
+TIM 2.0 maintains backward compatibility with TARA Estonia while adding multi-provider support.
 
-TIM 2.0 maintains backward compatibility with TARA Estonia authentication while adding support for multiple OAuth2/OIDC providers.
+**Key Changes:**
+- Configuration moved to multi-provider format
+- API endpoints updated to `/oauth2/{provider}/*` pattern
+- New custom JWT management endpoints added
+- Database schema extended for token lifecycle tracking
 
-#### Configuration Changes
-
-**TIM 1.x** (TARA-only):
-```yaml
-tara:
-  clientId: xxx
-  clientSecret: yyy
-```
-
-**TIM 2.0** (Multi-provider):
-```yaml
-oauth2:
-  providers:
-    tara:
-      clientId: xxx
-      clientSecret: yyy
-      enabled: true
-```
-
-#### API Endpoint Changes
-
-| TIM 1.x | TIM 2.0 | Notes |
-|---------|---------|-------|
-| `/tara/login` | `/oauth2/tara/login` | TARA-specific endpoint |
-| N/A | `/oauth2/{provider}/login` | New: Support for any provider |
-| `/tara/callback` | `/oauth2/callback` | Unified callback for all providers |
-| N/A | `/jwt/custom/generate` | New: Custom JWT generation |
-| N/A | `/jwt/custom/list/me` | New: Token management |
-
-#### Database Schema
-
-TIM 2.0 introduces new tables for token management. Migration scripts are provided in `db/migrations/`.
-
----
-
-## Upgrade Instructions
-
-### Upgrading to 2.0.0
-
-1. **Backup your database**:
-   ```bash
-   docker-compose exec postgres pg_dump -U tim tim > backup.sql
-   ```
-
-2. **Update configuration**:
-   - Review `application.yml` changes
-   - Update OAuth2 provider configuration
-   - Set new environment variables
-
-3. **Run database migrations**:
-   ```bash
-   docker-compose up -d postgres
-   # Migrations run automatically on startup
-   ```
-
-4. **Update client applications**:
-   - Update API endpoints to new paths
-   - Add Authorization headers for JWT tokens
-   - Update callback URLs for OAuth2
-
-5. **Test thoroughly**:
-   - Verify TARA authentication (if used)
-   - Test new custom JWT features
-   - Validate token lifecycle operations
-
----
-
-## Deprecation Notices
-
-### Deprecated in 2.0.0
-- **Direct TARA endpoints**: Use `/oauth2/tara/*` instead of `/tara/*`
-- **Legacy session format**: Migrated to new session structure
-
-### Removed in 2.0.0
-- **Hardcoded TARA configuration**: Now uses dynamic provider configuration
+See the complete [Migration Guide](docs/migration-guide.md) for detailed upgrade instructions.
 
 ---
 
 ## Contributors
 
-TIM 2.0 represents the collaborative effort of:
 - **Original Architect**: Rainer Türner (RIA Estonia)
-- **Current Development**: Rainer Türner
-- **Code Generation Assistance**: Claude Code (Anthropic)
+- **Current Maintainer**: Rainer Türner
 
 ---
 
 ## License
 
-TIM 2.0 is released under the MIT License, maintaining the open-source nature of the original TARA Integration Module.
-
-See [LICENSE](LICENSE) for complete license terms.
+MIT License - See [LICENSE](LICENSE) for complete terms.

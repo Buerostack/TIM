@@ -26,12 +26,11 @@ By participating in this project, you agree to:
 
 ### Prerequisites
 
-Before contributing, ensure you have:
-- Java 17 or higher
-- Maven 3.8 or higher
-- Docker and Docker Compose
-- Git
-- A GitHub account
+See the [Development Environment Setup Guide](docs/how-to/setup-development-environment.md#prerequisites) for detailed system requirements.
+
+Quick checklist:
+- Java 17+, Maven 3.8+, Docker, Git
+- GitHub account for contributions
 
 ### Fork and Clone
 
@@ -49,21 +48,9 @@ Before contributing, ensure you have:
 
 ## Development Setup
 
-Follow the [Development Environment Setup Guide](docs/how-to/setup-development-environment.md) to configure your local environment.
+Follow the [Development Environment Setup Guide](docs/how-to/setup-development-environment.md) for complete instructions.
 
-### Quick Start
-
-```bash
-# Start PostgreSQL
-docker-compose up -d postgres
-
-# Build the project
-mvn clean install
-
-# Run the application
-cd app/server
-mvn spring-boot:run
-```
+Quick start: `docker-compose up -d postgres && mvn clean install && mvn spring-boot:run`
 
 ## Development Workflow
 
@@ -207,71 +194,21 @@ public class CustomJwtController {
 
 ## Testing Requirements
 
-All contributions must include appropriate tests.
+All contributions must include tests with 80% minimum coverage.
 
-### Test Coverage Requirements
+**Requirements:**
+- Unit tests for business logic
+- Integration tests for endpoints
+- 100% coverage for security-related code
 
-- **Minimum Coverage**: 80% line coverage
-- **Critical Paths**: 100% coverage for security-related code
-- **Controllers**: Integration tests for all endpoints
-- **Services**: Unit tests for business logic
-- **Repositories**: Integration tests with test database
-
-### Test Types
-
-#### Unit Tests
-```java
-@Test
-void shouldGenerateTokenWithValidClaims() {
-    // Given
-    Map<String, Object> claims = Map.of("sub", "user123");
-    GenerateJwtRequest request = new GenerateJwtRequest("test", claims, 60);
-
-    // When
-    JwtToken token = jwtService.generateToken(request);
-
-    // Then
-    assertNotNull(token);
-    assertEquals("test", token.getJwtName());
-}
-```
-
-#### Integration Tests
-```java
-@SpringBootTest
-@AutoConfigureMockMvc
-class CustomJwtControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Test
-    void shouldGenerateTokenViaAPI() throws Exception {
-        mockMvc.perform(post("/jwt/custom/generate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"JWTName\":\"test\",\"content\":{\"sub\":\"user\"},\"expirationInMinutes\":60}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists());
-    }
-}
-```
-
-### Running Tests
-
+**Quick Commands:**
 ```bash
-# All tests
-mvn test
-
-# With coverage report
-mvn test jacoco:report
-# View: target/site/jacoco/index.html
-
-# Specific test
-mvn test -Dtest=CustomJwtControllerTest
-
-# Skip tests (for development only)
-mvn install -DskipTests
+mvn test                    # Run all tests
+mvn test jacoco:report     # Generate coverage report
+mvn test -Dtest=ClassName  # Run specific test
 ```
+
+For detailed testing guidelines, see the [Testing Framework Documentation](testing/README.md).
 
 ## Pull Request Process
 
@@ -326,38 +263,20 @@ Brief description of what this PR does.
 
 ## Documentation
 
-Documentation is as important as code. When contributing:
+Documentation is as important as code.
 
-### Code Documentation
+**When adding features, update:**
+- JavaDoc for all public methods
+- User guides in `docs/how-to/` for new functionality
+- OpenAPI specification for new endpoints
+- Architecture docs for significant changes
+- Add examples to `examples/` directory
 
-- **JavaDoc**: Document all public methods and classes
-  ```java
-  /**
-   * Generates a custom JWT token with the specified claims.
-   *
-   * @param request the token generation request
-   * @return the generated JWT token
-   * @throws InvalidClaimException if claims are invalid
-   */
-  public JwtToken generateToken(GenerateJwtRequest request) {
-      // implementation
-  }
-  ```
-
-### User Documentation
-
-When adding features, update:
-- README.md (if it affects quick start or core features)
-- docs/how-to/ (step-by-step guides)
-- docs/reference/ (API documentation)
-- OpenAPI specification (for new endpoints)
-
-### Architecture Documentation
-
-For significant changes, update:
-- docs/architecture/overview.md
-- docs/architecture/data-flow.md
-- Add Mermaid diagrams where appropriate
+**Documentation Standards:**
+- Use Mermaid for diagrams
+- Include code examples
+- Write for clarity and brevity
+- Cross-reference related documentation
 
 ## Reporting Issues
 
@@ -390,46 +309,15 @@ Contact the maintainers privately:
 
 ## Development Resources
 
-### Useful Commands
-
+**Useful Commands:**
 ```bash
-# Build
-mvn clean install
-
-# Run locally
-mvn spring-boot:run
-
-# Format code
-mvn spotless:apply
-
-# Check dependencies
-mvn dependency:tree
-
-# Update dependencies
-mvn versions:display-dependency-updates
-
-# Docker build
-docker-compose build
-
-# View logs
-docker-compose logs -f tim
+mvn clean install              # Build
+mvn spring-boot:run           # Run locally
+mvn test jacoco:report        # Test with coverage
+docker-compose logs -f tim    # View logs
 ```
 
-### Project Structure
-
-```
-TIM/
-├── app/                    # Application modules
-│   ├── server/            # Main application
-│   ├── common/            # Shared code
-│   ├── custom-jwt/        # JWT module
-│   └── oauth2-oidc/       # OAuth2 module
-├── db/                    # Database scripts
-├── docs/                  # Documentation
-└── examples/              # Code examples
-```
-
-See [docs/architecture/file-structure.md](docs/architecture/file-structure.md) for details.
+**Project Structure:** See [docs/architecture/file-structure.md](docs/architecture/file-structure.md)
 
 ## Questions?
 
