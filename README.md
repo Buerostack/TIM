@@ -6,6 +6,9 @@
 
 TIM 2.0 (Token Identity Manager) is an advanced JWT and OAuth2 integration platform that provides comprehensive token lifecycle management and multi-provider authentication capabilities. It serves as a universal, provider-agnostic identity management solution for modern applications.
 
+**Maintained by**: Rainer Türner
+**Status**: Active Development
+
 ## Origin
 
 Originally developed at **Information System Authority of Estonia** (Riigi Infosüsteemi Amet, RIA).
@@ -31,13 +34,46 @@ For detailed setup instructions, see the [Development Environment Setup Guide](d
 
 ---
 
-## Core Features
+## Installation
 
+### Prerequisites
+- Docker and Docker Compose
+- Git
+
+### Setup
+```bash
+git clone https://github.com/Buerostack/TIM.git
+cd TIM
+docker-compose up -d
+```
+
+The application will be available at **http://localhost:8085**
+
+For detailed setup instructions, see the [Development Environment Setup Guide](docs/how-to/setup-development-environment.md).
+
+---
+
+## Basic Usage
+
+### Core Features
 - **OAuth2/OIDC Authentication**: Multi-provider support (Google, GitHub, TARA, custom)
 - **Custom JWT Management**: Generate, extend, revoke, and validate tokens
 - **Token Lifecycle Tracking**: Complete audit trails with extension chains
 - **Enterprise Security**: RSA256 signatures, PKCE, CSRF protection, token revocation
 - **Developer Friendly**: OpenAPI docs, runnable examples, comprehensive guides
+
+### Generate a Token
+
+```bash
+curl -X POST http://localhost:8085/jwt/custom/generate \
+  -H "Content-Type: application/json" \
+  -d '{"JWTName": "my-token", "content": {"sub": "user123"}, "expirationInMinutes": 60}'
+```
+
+### Detailed Guides
+- [Generate Custom JWT Tokens](docs/how-to/generate-custom-jwt.md)
+- [Configure OAuth2 Providers](docs/how-to/configure-oauth2-provider.md)
+- [Runnable Examples](examples/) - Complete integration examples
 
 ---
 
@@ -51,22 +87,6 @@ For detailed documentation, see the [docs/](docs/) directory:
 - **Examples**: Runnable code examples for integration
 
 **Interactive API Testing**: [Swagger UI](http://localhost:8085) - Live API testing interface
-
----
-
-## Basic Usage
-
-**Generate a Token:**
-```bash
-curl -X POST http://localhost:8085/jwt/custom/generate \
-  -H "Content-Type: application/json" \
-  -d '{"JWTName": "my-token", "content": {"sub": "user123"}, "expirationInMinutes": 60}'
-```
-
-**Detailed Guides:**
-- [Generate Custom JWT Tokens](docs/how-to/generate-custom-jwt.md)
-- [Configure OAuth2 Providers](docs/how-to/configure-oauth2-provider.md)
-- [Runnable Examples](examples/) - Complete integration examples
 
 ---
 

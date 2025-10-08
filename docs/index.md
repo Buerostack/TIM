@@ -69,7 +69,7 @@ curl -X POST http://localhost:8080/introspect \
 ## Documentation
 
 - [Architecture Overview](architecture/)
-- [API Reference](api/)
+- [API Reference](reference/)
 - [KeyCloak Migration Guide](migration/)
 - [Deployment Guide](deployment/)
 - [Security Features](security/)
