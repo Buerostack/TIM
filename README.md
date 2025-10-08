@@ -1,5 +1,14 @@
 # TIM 2.0 - Token Identity Manager
-Advanced JWT & OAuth2 Integration Platform
+
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Version](https://img.shields.io/badge/version-2.0-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+
+## About
+
+TIM 2.0 (Token Identity Manager) is an advanced JWT and OAuth2 integration platform that provides comprehensive token lifecycle management and multi-provider authentication capabilities. It serves as a universal, provider-agnostic identity management solution for modern applications.
+
+**Maintained by**: Rainer Türner
+**Background**: TIM 2.0 evolved from the original TARA Integration Module (TIM) initially developed by the Information System Authority of Estonia (RIA). This repository represents a complete architectural rewrite, transforming TIM into a universal platform while maintaining backward compatibility with the original TARA-focused functionality.
+**Status**: Active Development
 
 ## Origin
 
@@ -81,146 +90,44 @@ curl -X POST http://localhost:8085/jwt/custom/list/me \
 
 ## Documentation
 
-### 📚 API Documentation
-- **[Complete API Guide](docs/README.md)** - Comprehensive documentation with examples
-- **[Interactive Swagger UI](http://localhost:8085)** - Live API testing interface
+For detailed documentation, see the [docs/](docs/) directory:
 
-### 🔗 Endpoint References
-- **[OAuth2 Authentication](docs/endpoints/oauth2-authentication.md)** - Provider discovery, login flows, session validation
-- **[JWT Management](docs/endpoints/custom-jwt-management.md)** - Token generation, listing, extension, revocation
-- **[Public Keys](docs/endpoints/public-keys.md)** - JWKS endpoints for signature verification
+- **Architecture**: System design, component overview, and data flow diagrams
+- **How-To Guides**: Step-by-step instructions for common tasks
+- **API Reference**: Complete OpenAPI specification and endpoint documentation
+- **Examples**: Runnable code examples for integration
 
-### 🗄️ Technical Details
-- **[Database Schema](docs/database/schema.md)** - Complete schema documentation with indexes
-- **[OpenAPI Specification](docs/api/openapi.yaml)** - Machine-readable API specification
+**Interactive API Testing**: [Swagger UI](http://localhost:8085) - Live API testing interface
 
 ---
 
-## Development
+## Basic Usage
 
-### Local Development Setup
-```bash
-# Clone repository
-git clone https://github.com/Buerostack/TIM.git
-cd TIM
-
-# Start dependencies (PostgreSQL)
-docker-compose up -d postgres
-
-# Run application
-cd app
-mvn spring-boot:run
-```
-
-### Building from Source
-```bash
-# Build all modules
-mvn clean package
-
-# Build Docker image
-docker-compose build tim
-
-# Run tests
-mvn test
-```
-
-### Project Structure
-```
-TIM/
-├── app/                    # Application modules
-│   ├── server/             # Main Spring Boot application
-│   ├── common/             # Shared utilities
-│   ├── custom-jwt/         # JWT management module
-│   └── oauth2-oidc/        # OAuth2 authentication module
-├── db/                     # Database initialization
-├── docs/                   # API and technical documentation
-└── docker-compose.yml     # Container orchestration
-```
+See the [examples/](examples/) directory for runnable code examples demonstrating:
+- OAuth2 authentication flows
+- Custom JWT token generation and validation
+- Token lifecycle management
+- Multi-provider integration
 
 ---
 
-## Configuration
+## Contributing
 
-### Environment Variables
-```bash
-# Database
-DATABASE_URL=jdbc:postgresql://postgres:5432/tim
-DATABASE_USERNAME=tim
-DATABASE_PASSWORD=tim
-
-# JWT Signing
-KEY_PASS=changeme
-
-# OAuth2 Providers (JSON configuration)
-OAUTH2_PROVIDERS={"google":{"clientId":"...","clientSecret":"..."}}
-```
-
-### Provider Configuration
-TIM 2.0 supports any OAuth2/OIDC compliant provider. See documentation for configuration examples with:
-- Google OAuth2
-- GitHub OAuth2
-- Microsoft Azure AD
-- TARA Estonia
-- Custom OIDC providers
-
----
-
-## Security
-
-### Key Features
-- **RSA256 JWT Signatures**: Industry-standard token signing
-- **Token Revocation**: Immediate invalidation capability
-- **PKCE Support**: Enhanced OAuth2 security
-- **CSRF Protection**: State parameter validation
-- **Secure Sessions**: HttpOnly cookies with proper expiration
-
-### Best Practices
-- Rotate JWT signing keys regularly
-- Use appropriate token expiration times
-- Implement proper error handling
-- Monitor token usage patterns
-- Keep dependencies updated
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project, including:
+- Development setup
+- Code standards
+- Testing requirements
+- Pull request process
 
 ---
 
 ## License
 
-TIM 2.0 is released under the MIT License, allowing free use by anyone while requiring attribution to the original source.
+TIM 2.0 is released under the MIT License. See [LICENSE](LICENSE) for complete license terms.
 
-### Attribution Requirements
-When using TIM 2.0, please include the following attribution:
-
+When using TIM 2.0, please include attribution:
 ```
 TIM 2.0 - Token Identity Manager
 Originally developed by RIA (Information System Authority of Estonia)
 Original Architect: Rainer Türner
-Current Maintainer: Rainer Türner
-Code Generation Assistance: Claude Code (Anthropic)
 ```
-
-See [LICENSE](LICENSE) file for complete license terms.
-
----
-
-## Support & Contributing
-
-### Documentation
-- **API Documentation**: Complete guides available in [docs/](docs/)
-- **Interactive Testing**: Swagger UI at http://localhost:8085
-- **Examples**: Integration examples for common use cases
-
-### Getting Help
-- Review the comprehensive [API documentation](docs/README.md)
-- Check the [database schema guide](docs/database/schema.md)
-- Test endpoints using the [interactive Swagger UI](http://localhost:8085)
-
-### Reporting Issues
-When reporting issues, please include:
-- TIM 2.0 version
-- Environment details (Docker, Java version)
-- Error logs and reproduction steps
-- Expected vs actual behavior
-
----
-
-*TIM 2.0 maintains the security principles and reliability of the original RIA-developed TARA Integration Module while expanding capabilities for global enterprise use.*
