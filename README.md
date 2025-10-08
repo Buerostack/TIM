@@ -6,9 +6,15 @@
 
 TIM 2.0 (Token Identity Manager) is an advanced JWT and OAuth2 integration platform that provides comprehensive token lifecycle management and multi-provider authentication capabilities. It serves as a universal, provider-agnostic identity management solution for modern applications.
 
-**Maintained by**: Rainer Türner
-**Background**: TIM 2.0 evolved from the original TARA Integration Module (TIM) initially developed by the Information System Authority of Estonia (RIA). This repository represents a complete architectural rewrite, transforming TIM into a universal platform while maintaining backward compatibility with the original TARA-focused functionality.
-**Status**: Active Development
+## Origin
+
+Originally developed at **Information System Authority of Estonia** (Riigi Infosüsteemi Amet, RIA).
+
+- **Original Repository**: [https://github.com/buerokratt/TIM](https://github.com/buerokratt/TIM)
+- **Initial Development**: As TARA Integration Module for Estonia's e-authentication service
+- **Original Lead Developer**: [Rainer Türner](https://www.linkedin.com/in/rainer-t%C3%BCrner-058b80b8/)
+
+This cleaned repository, started on **October 8, 2025**, is maintained by Rainer Türner to continue development of TIM as a universal, provider-agnostic platform while preserving the core security principles of the original implementation. The repository represents a complete architectural rewrite, expanding from TARA-specific integration to comprehensive multi-provider OAuth2/OIDC and custom JWT management capabilities.
 
 
 ## Quick Start
